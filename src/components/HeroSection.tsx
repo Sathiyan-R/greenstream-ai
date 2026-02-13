@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Rocket, Brain } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const Particle = ({ delay, x, y, size }: { delay: number; x: number; y: number; size: number }) => (
@@ -93,9 +94,11 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.45 }}
         >
-          <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-semibold text-base px-8 py-6 glow-green">
-            <Rocket className="w-5 h-5 mr-2" />
-            View Live Demo
+          <Button size="lg" asChild className="bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-semibold text-base px-8 py-6 glow-green">
+            <Link to="/dashboard">
+              <Rocket className="w-5 h-5 mr-2" />
+              View Live Demo
+            </Link>
           </Button>
           <Button size="lg" variant="outline" className="border-glass-border text-foreground hover:bg-muted font-heading font-semibold text-base px-8 py-6">
             <Brain className="w-5 h-5 mr-2" />
