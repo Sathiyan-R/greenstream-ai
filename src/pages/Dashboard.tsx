@@ -7,6 +7,7 @@ import {
 import {
   AlertTriangle, RefreshCw, Cloud, Wind, Droplets, Thermometer,
   Leaf, Zap, Sun, Activity, CheckCircle2, XCircle, TrendingUp,
+  Brain, ShieldAlert, Calendar,
 } from "lucide-react";
 import DashboardAIChat from "@/components/dashboard/DashboardAIChat";
 import { Link } from "react-router-dom";
@@ -50,6 +51,10 @@ const LiveDashboard = () => {
   const aqi = state.airQuality?.aqi ?? 0;
   const aqiInfo = aqiLevel(aqi);
 
+  const riskColor = state.prediction?.riskLevel === "High"
+    ? "text-destructive" : state.prediction?.riskLevel === "Medium"
+    ? "text-yellow-400" : "text-primary";
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -65,6 +70,7 @@ const LiveDashboard = () => {
           <div className="hidden md:flex items-center gap-3">
             <StatusDot connected={apiStatus.weather} label="Weather" />
             <StatusDot connected={apiStatus.airQuality} label="AQI" />
+            <StatusDot connected={apiStatus.forecast} label="Forecast" />
             <StatusDot connected={apiStatus.energy} label="Energy" />
           </div>
           <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-primary/10">
@@ -97,7 +103,7 @@ const LiveDashboard = () => {
                 <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20">
                   <AlertTriangle className="w-4 h-4 text-destructive" />
                   <span className="text-sm text-destructive font-medium">
-                    ⚠ {a.buildingId}: Energy spike +{a.spike}%
+                    ⚠ {a.buildingId}: {a.message}
                   </span>
                 </div>
               ))}
@@ -106,44 +112,61 @@ const LiveDashboard = () => {
 
           {/* Top Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <MetricCard
-              label="Carbon Emissions"
-              value={Math.round(state.carbon?.totalEmissions ?? 0)}
-              unit="kgCO₂"
-              icon={Activity}
-            />
-            <MetricCard
-              label="Temperature"
-              value={state.weather?.temperature?.toFixed(1) ?? "--"}
-              unit="°C"
-              icon={Thermometer}
-            />
-            <MetricCard
-              label="Humidity"
-              value={state.weather?.humidity ?? "--"}
-              unit="%"
-              icon={Droplets}
-            />
-            <MetricCard
-              label="AQI"
-              value={aqi || "--"}
-              unit={aqiInfo.label}
-              icon={Wind}
-            />
-            <MetricCard
-              label="Sustainability"
-              value={state.sustainabilityScore}
-              unit="/ 100"
-              icon={Leaf}
-              color="primary"
-            />
-            <MetricCard
-              label="Weather"
-              value={state.weather?.condition ?? "--"}
-              unit={state.weather?.description ?? ""}
-              icon={Cloud}
-            />
+            <MetricCard label="Carbon Emissions" value={Math.round(state.carbon?.totalEmissions ?? 0)} unit="kgCO₂" icon={Activity} />
+            <MetricCard label="Temperature" value={state.weather?.temperature?.toFixed(1) ?? "--"} unit="°C" icon={Thermometer} />
+            <MetricCard label="Humidity" value={state.weather?.humidity ?? "--"} unit="%" icon={Droplets} />
+            <MetricCard label="AQI" value={aqi || "--"} unit={aqiInfo.label} icon={Wind} />
+            <MetricCard label="Sustainability" value={state.sustainabilityScore} unit="/ 100" icon={Leaf} color="primary" />
+            <MetricCard label="Weather" value={state.weather?.condition ?? "--"} unit={state.weather?.description ?? ""} icon={Cloud} />
           </div>
+
+          {/* Tomorrow Prediction Card */}
+          {state.prediction && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-panel p-4 glow-blue"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar className="w-4 h-4 text-secondary" />
+                <p className="text-sm font-heading font-semibold">Tomorrow's Prediction</p>
+                <span className={`ml-auto text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  state.prediction.riskLevel === "High" ? "bg-destructive/20 text-destructive" :
+                  state.prediction.riskLevel === "Medium" ? "bg-yellow-400/20 text-yellow-400" :
+                  "bg-primary/20 text-primary"
+                }`}>
+                  {state.prediction.riskLevel} Risk
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Predicted Energy</p>
+                  <p className="text-lg font-heading font-bold">{state.prediction.predictedEnergy} <span className="text-xs text-muted-foreground">kWh</span></p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Predicted Carbon</p>
+                  <p className="text-lg font-heading font-bold">{state.prediction.predictedCarbon} <span className="text-xs text-muted-foreground">kgCO₂</span></p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Forecast Temp</p>
+                  <p className="text-lg font-heading font-bold">{state.forecast?.maxTemp ?? "--"} <span className="text-xs text-muted-foreground">°C max</span></p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Forecast</p>
+                  <p className="text-lg font-heading font-bold">{state.forecast?.condition ?? "--"}</p>
+                </div>
+              </div>
+              {state.prediction.factors.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {state.prediction.factors.map((f, i) => (
+                    <span key={i} className="text-[10px] px-2 py-1 rounded-full bg-muted/50 text-muted-foreground border border-border">
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
 
           {/* Charts + AI Chat */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -154,7 +177,10 @@ const LiveDashboard = () => {
                   <Zap className="w-4 h-4 text-primary" />
                   Live Energy Usage vs Solar Production
                 </p>
-                <span className="text-[10px] text-muted-foreground">Auto-refresh: 5s</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] text-muted-foreground">Avg: {state.rollingAvgUsage} kWh</span>
+                  <span className="text-[10px] text-muted-foreground">Auto-refresh: 5s</span>
+                </div>
               </div>
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={state.energyHistory}>
@@ -215,20 +241,14 @@ const LiveDashboard = () => {
                       <div className="flex items-center gap-2">
                         <Zap className="w-3 h-3 text-primary" />
                         <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-primary transition-all duration-500"
-                            style={{ width: `${Math.min(100, (r.energyUsage / 800) * 100)}%` }}
-                          />
+                          <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.min(100, (r.energyUsage / 800) * 100)}%` }} />
                         </div>
                         <span className="text-[10px] text-muted-foreground w-14 text-right">{Math.round(r.energyUsage)} kWh</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Sun className="w-3 h-3 text-secondary" />
                         <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-secondary transition-all duration-500"
-                            style={{ width: `${Math.min(100, (r.solarProduction / 250) * 100)}%` }}
-                          />
+                          <div className="h-full rounded-full bg-secondary transition-all duration-500" style={{ width: `${Math.min(100, (r.solarProduction / 250) * 100)}%` }} />
                         </div>
                         <span className="text-[10px] text-muted-foreground w-14 text-right">{Math.round(r.solarProduction)} kWh</span>
                       </div>
