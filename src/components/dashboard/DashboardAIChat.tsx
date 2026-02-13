@@ -7,9 +7,9 @@ import ReactMarkdown from "react-markdown";
 
 const SUGGESTIONS = [
   "Why did emissions increase?",
-  "Is there abnormal energy usage?",
-  "How can we reduce carbon output?",
-  "Give sustainability recommendations.",
+  "What will happen tomorrow?",
+  "Is there abnormal activity?",
+  "Give sustainability suggestions.",
 ];
 
 const DashboardAIChat = ({ dashboardState }: { dashboardState: DashboardState }) => {
