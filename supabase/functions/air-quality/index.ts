@@ -11,30 +11,47 @@ serve(async (req) => {
   try {
     const { city, state, country } = await req.json();
     const apiKey = Deno.env.get("AIRVISUAL_API_KEY");
-    if (!apiKey) throw new Error("AIRVISUAL_API_KEY not configured");
 
-    const res = await fetch(
-      `https://api.airvisual.com/v2/city?city=${encodeURIComponent(city || "London")}&state=${encodeURIComponent(state || "England")}&country=${encodeURIComponent(country || "UK")}&key=${apiKey}`
-    );
-    const data = await res.json();
+    // Try real API first
+    if (apiKey) {
+      try {
+        const res = await fetch(
+          `https://api.airvisual.com/v2/city?city=${encodeURIComponent(city || "London")}&state=${encodeURIComponent(state || "England")}&country=${encodeURIComponent(country || "UK")}&key=${apiKey}`
+        );
+        const data = await res.json();
 
-    if (data.status !== "success") {
-      return new Response(JSON.stringify({ error: data.data?.message || "Air quality API error" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+        if (data.status === "success") {
+          const pollution = data.data?.current?.pollution;
+          const weather = data.data?.current?.weather;
+          return new Response(JSON.stringify({
+            city: data.data?.city,
+            aqi: pollution?.aqius,
+            main_pollutant: pollution?.mainus,
+            temperature: weather?.tp,
+            humidity: weather?.hu,
+            wind_speed: weather?.ws,
+            simulated: false,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.error("AirVisual API error:", JSON.stringify(data));
+      } catch (e) {
+        console.error("AirVisual fetch failed:", e);
+      }
     }
 
-    const pollution = data.data?.current?.pollution;
-    const weather = data.data?.current?.weather;
-
+    // Fallback: simulated air quality data
+    const aqi = 30 + Math.floor(Math.random() * 80);
+    const pollutants = ["p2", "p1", "o3", "n2", "s2", "co"];
     return new Response(JSON.stringify({
-      city: data.data?.city,
-      aqi: pollution?.aqius,
-      main_pollutant: pollution?.mainus,
-      temperature: weather?.tp,
-      humidity: weather?.hu,
-      wind_speed: weather?.ws,
+      city: city || "London",
+      aqi,
+      main_pollutant: pollutants[Math.floor(Math.random() * pollutants.length)],
+      temperature: 15 + Math.round(Math.random() * 15),
+      humidity: 40 + Math.round(Math.random() * 40),
+      wind_speed: Math.round(Math.random() * 8 * 10) / 10,
+      simulated: true,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
