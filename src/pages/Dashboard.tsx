@@ -1,5 +1,6 @@
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   BarChart, Bar,
@@ -40,6 +41,10 @@ const StatusDot = ({ connected, label }: { connected: boolean; label: string }) 
 
 const LiveDashboard = () => {
   const { state, loading, apiStatus, refresh } = useDashboardData();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const aqiLevel = (aqi: number) => {
     if (aqi <= 50) return { label: "Good", color: "text-primary" };

@@ -100,9 +100,11 @@ const HeroSection = () => {
               View Live Demo
             </Link>
           </Button>
-          <Button size="lg" variant="outline" className="border-glass-border text-foreground hover:bg-muted font-heading font-semibold text-base px-8 py-6">
-            <Brain className="w-5 h-5 mr-2" />
-            Explore AI Architecture
+          <Button size="lg" variant="outline" asChild className="border-glass-border text-foreground hover:bg-muted font-heading font-semibold text-base px-8 py-6">
+            <Link to="/explore-architecture">
+              <Brain className="w-5 h-5 mr-2" />
+              Explore AI Architecture
+            </Link>
           </Button>
         </motion.div>
       </div>

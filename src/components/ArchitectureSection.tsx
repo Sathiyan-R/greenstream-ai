@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Radio, GitBranch, Cpu, Database, Brain, LayoutDashboard } from "lucide-react";
+import { Radio, GitBranch, Cpu, Database, Brain, LayoutDashboard, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const nodes = [
   { icon: Radio, label: "IoT Devices", color: "primary" },
@@ -63,6 +64,22 @@ const ArchitectureSection = () => {
             ))}
           </div>
         </div>
+
+        {/* CTA Button */}
+        <motion.div
+          className="flex justify-center mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <Link
+            to="/explore-architecture"
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-heading font-semibold transition-all duration-300 glow-green hover:scale-105"
+          >
+            Explore Full Architecture
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
