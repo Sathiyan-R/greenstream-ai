@@ -26,7 +26,7 @@ export function generateInsights(dashboardState: DashboardState): AIInsight[] {
 
   // Air Quality Insights
   if (dashboardState.airQuality) {
-    const { aqi, pm25, pm10, so2, no2 } = dashboardState.airQuality;
+    const { aqi, main_pollutant } = dashboardState.airQuality;
 
     if (aqi > 150) {
       insights.push({
@@ -62,11 +62,11 @@ export function generateInsights(dashboardState: DashboardState): AIInsight[] {
     }
 
     // Specific pollutant warnings
-    if (pm25 && pm25 > 35) {
+    if (main_pollutant && aqi > 100) {
       insights.push({
-        id: `pm25-${timestamp.getTime()}`,
-        title: "High PM2.5 Levels",
-        message: `Fine particulate matter at ${pm25} µg/m³. Wear N95 masks outdoors.`,
+        id: `pollutant-${timestamp.getTime()}`,
+        title: `High ${main_pollutant} Levels`,
+        message: `Primary pollutant: ${main_pollutant}. Consider reducing outdoor activities.`,
         category: "air",
         severity: "warning",
         timestamp,
@@ -77,7 +77,7 @@ export function generateInsights(dashboardState: DashboardState): AIInsight[] {
 
   // Energy Insights
   if (dashboardState.energyReadings && dashboardState.energyReadings.length > 0) {
-    const currentEnergy = dashboardState.energyReadings[0];
+    const currentEnergy = dashboardState.energyReadings[0].energyUsage;
     const avgEnergy = dashboardState.rollingAvgUsage;
 
     if (currentEnergy > avgEnergy * 1.3) {
@@ -107,32 +107,25 @@ export function generateInsights(dashboardState: DashboardState): AIInsight[] {
 
   // Carbon Insights
   if (dashboardState.carbon) {
-    const { total, energy, transport, waste } = dashboardState.carbon;
+    const { totalEmissions } = dashboardState.carbon;
 
-    if (total > 100) {
+    if (totalEmissions > 100) {
       insights.push({
         id: `carbon-high-${timestamp.getTime()}`,
         title: "High Carbon Footprint",
-        message: `Daily emissions: ${total.toFixed(1)} kg CO2e. Primary source: ${
-          energy > 40 ? "Energy" : transport > 40 ? "Transport" : "Other"
-        }.`,
+        message: `Daily emissions: ${totalEmissions.toFixed(1)} kg CO2e.`,
         category: "carbon",
         severity: "warning",
         timestamp,
         actionable: true,
-        suggestion:
-          energy > 40
-            ? "Switch to renewable energy sources"
-            : transport > 40
-              ? "Reduce travel or use public transport"
-              : "Optimize daily activities",
+        suggestion: "Optimize energy consumption and use renewable sources",
       });
     }
   }
 
   // Weather-based Insights
   if (dashboardState.weather) {
-    const { temperature, humidity, windSpeed, weatherMain } = dashboardState.weather;
+    const { temperature, wind_speed, condition } = dashboardState.weather;
 
     if (temperature > 30) {
       insights.push({
@@ -146,11 +139,11 @@ export function generateInsights(dashboardState: DashboardState): AIInsight[] {
       });
     }
 
-    if (windSpeed > 30) {
+    if (wind_speed > 30) {
       insights.push({
         id: `wind-${timestamp.getTime()}`,
         title: "Strong Winds Expected",
-        message: `Wind speed: ${windSpeed} km/h. Air quality may improve due to pollution dispersal.`,
+        message: `Wind speed: ${wind_speed} km/h. Air quality may improve due to pollution dispersal.`,
         category: "weather",
         severity: "info",
         timestamp,
@@ -204,13 +197,13 @@ export function generateInsights(dashboardState: DashboardState): AIInsight[] {
   if (dashboardState.anomalies && dashboardState.anomalies.length > 0) {
     dashboardState.anomalies.slice(0, 2).forEach((anomaly) => {
       insights.push({
-        id: `anomaly-${anomaly.id}`,
-        title: `Anomaly Detected: ${anomaly.metric}`,
-        message: anomaly.description,
+        id: `anomaly-${anomaly.buildingId}`,
+        title: `Alert: ${anomaly.type}`,
+        message: anomaly.message,
         category: "general",
-        severity: anomaly.severity === "high" ? "warning" : "info",
+        severity: "warning",
         timestamp,
-        actionable: anomaly.severity === "high",
+        actionable: true,
       });
     });
   }

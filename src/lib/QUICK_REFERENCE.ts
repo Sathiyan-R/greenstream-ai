@@ -1,317 +1,123 @@
 /**
  * ADVANCED FEATURES - QUICK REFERENCE
  * 
- * Quick copy-paste guide for integrating all 5 features
+ * This file exports reference documentation for the 5 advanced features.
+ * For full implementation examples, see QUICK_REFERENCE.md
  */
 
 // ============================================================================
-// FEATURE 1: SUSTAINABILITY SCORE CARD
+// COMPONENT EXPORTS
 // ============================================================================
 
-import { SustainabilityScoreCard } from "@/components/dashboard/SustainabilityScoreCard";
-import {
-  calculateSustainabilityScore,
-  getScoreStatus,
-  calculateScoreTrend,
-  type ScoreFactors,
-} from "@/lib/scoreCalculation";
-
-// Usage:
-const scoreFactors: ScoreFactors = {
-  aqi: 75,
-  energyConsumption: 450,
-  carbonEmission: 180,
-  temperatureSeverity: 5,
+export const COMPONENT_EXPORTS = {
+  SustainabilityScoreCard: "src/components/dashboard/SustainabilityScoreCard.tsx",
+  PredictionChart: "src/components/dashboard/PredictionChart.tsx",
+  AnomalyAlerts: "src/components/dashboard/AnomalyAlerts.tsx",
+  AIInsightGenerator: "src/components/dashboard/AIInsightGenerator.tsx",
 };
 
-const score = calculateSustainabilityScore(scoreFactors); // Returns 0-100
-const status = getScoreStatus(score); // Returns status object
-const trend = calculateScoreTrend(score, previousScore); // Returns direction & change
-
-// Render:
-// <SustainabilityScoreCard factors={scoreFactors} previousScore={72} />
-
 // ============================================================================
-// FEATURE 2: PREDICTION CHARTS
+// UTILITY FUNCTION EXPORTS
 // ============================================================================
 
-import { PredictionChart } from "@/components/dashboard/PredictionChart";
-import {
-  predictEnergyConsumption,
-  predictAQI,
-  predictCarbonEmissions,
-  analyzeMetricTrends,
-  type PredictionPoint,
-} from "@/lib/predictions";
-
-// Usage:
-const energyHistory = [500, 480, 520, 510, ...]; // Array of historical values
-const predictions = {
-  energy: predictEnergyConsumption(energyHistory, 12), // Next 12 hours
-  aqi: predictAQI(aqiHistory, temperature, windSpeed, 12),
-  carbon: predictCarbonEmissions(energyHistory, 0.4, 12), // 0.4 kg CO2/kWh
+export const UTILITY_EXPORTS = {
+  scoreCalculation: [
+    "calculateSustainabilityScore(factors: ScoreFactors): number",
+    "getScoreStatus(score: number): ScoreStatus",
+    "calculateScoreTrend(current: number, previous: number): ScoreTrend",
+  ],
+  anomalyDetection: [
+    "detectAnomaly(current: number, history: number[], threshold?: number): boolean",
+    "detectMultipleAnomalies(metrics: MetricsMap): Anomaly[]",
+    "calculateMean(data: number[]): number",
+    "calculateStandardDeviation(data: number[]): number",
+    "getSeverityColor(severity: string): string",
+    "getSeverityBgColor(severity: string): string",
+  ],
+  predictions: [
+    "predictEnergyConsumption(history: number[], hours: number): PredictionPoint[]",
+    "predictAQI(history: number[], temp: number, wind: number, hours: number): PredictionPoint[]",
+    "predictCarbonEmissions(energy: number[], intensity: number, hours: number): PredictionPoint[]",
+    "analyzeMetricTrends(...metrics): TrendAnalysis",
+  ],
+  insightGenerator: [
+    "generateInsights(state: DashboardState): AIInsight[]",
+    "generateSummaryInsight(state: DashboardState): string",
+    "formatInsightForDisplay(insight: AIInsight): DisplayFormat",
+  ],
 };
 
-const insights = analyzeMetricTrends(currentAQI, energy, carbon, prevAQI, prevEnergy, prevCarbon);
-
-// Render:
-// <PredictionChart
-//   energyHistory={energyHistory}
-//   aqi={75}
-//   temperature={22}
-//   windSpeed={12}
-//   carbonIntensity={0.4}
-// />
-
 // ============================================================================
-// FEATURE 3: ANOMALY DETECTION
+// HOOK EXPORTS
 // ============================================================================
 
-import {
-  AnomalyAlerts,
-  AnomalyBadge,
-  AnomalySummary,
-} from "@/components/dashboard/AnomalyAlerts";
-import {
-  detectAnomaly,
-  detectMultipleAnomalies,
-  calculateMean,
-  calculateStandardDeviation,
-  getSeverityColor,
-  getSeverityBgColor,
-  type Anomaly,
-} from "@/lib/anomalyDetection";
-
-// Usage - Single metric:
-const isAnomaly = detectAnomaly(
-  currentValue, // Current reading
-  historicalData, // Array of past values
-  threshold // Optional, default 2
-);
-
-// Usage - Multiple metrics:
-const anomalies = detectMultipleAnomalies({
-  "Energy Consumption": {
-    current: 650,
-    history: [450, 480, 520, 495, 510, ...],
-  },
-  "Air Quality Index": {
-    current: 180,
-    history: [65, 68, 72, 70, 69, ...],
-  },
-});
-
-// Statistics:
-const mean = calculateMean(data);
-const stdDev = calculateStandardDeviation(data);
-
-// Styling:
-const color = getSeverityColor("high"); // "text-red-600"
-const bg = getSeverityBgColor("medium"); // "bg-orange-50 border-orange-200"
-
-// Render:
-// <div>
-//   <AnomalyBadge count={anomalies.length} severe={anomalies.some(a => a.severity === 'high')} />
-//   <AnomalyAlerts anomalies={anomalies} maxDisplay={5} />
-//   <AnomalySummary anomalies={anomalies} />
-// </div>
+export const HOOK_EXPORTS = {
+  useEnhancedDashboardData: "Optimized computation hook returning anomalies, scoreFactors, energy stats",
+  useDashboardDataOptimized: "Provides cache key factors and prediction data",
+};
 
 // ============================================================================
-// FEATURE 4: AI INSIGHT GENERATOR
+// FEATURE USAGE PATTERNS
 // ============================================================================
 
-import { AIInsightGenerator } from "@/components/dashboard/AIInsightGenerator";
-import {
-  generateInsights,
-  generateSummaryInsight,
-  formatInsightForDisplay,
-  type AIInsight,
-} from "@/lib/insightGenerator";
+export const FEATURE_PATTERNS = {
+  sustainabilityScore: `
+    Import SustainabilityScoreCard and scoreCalculation utilities.
+    Define ScoreFactors with aqi, energyConsumption, carbonEmission, temperatureSeverity.
+    Calculate score: calculateSustainabilityScore(factors).
+    Render: <SustainabilityScoreCard factors={scoreFactors} previousScore={72} />
+  `,
 
-// Usage - Generate insights from state:
-const insights = generateInsights(dashboardState);
-// Returns array of up to 5 AIInsight objects
+  predictions: `
+    Import PredictionChart and prediction utilities.
+    Prepare historical data arrays for energy, AQI, carbon.
+    Generate predictions using predict* functions with 12-hour horizon.
+    Render: <PredictionChart energyHistory={history} aqi={aqi} temperature={temp} />
+  `,
 
-// Usage - Get summary:
-const summary = generateSummaryInsight(dashboardState);
-// Returns: "⚠️ High Pollution Alert: Current AQI is 180..."
+  anomalyDetection: `
+    Import anomaly detection utilities and AnomalyAlerts component.
+    Call detectMultipleAnomalies with metrics map containing current/history.
+    Check severity with getSeverityColor/getSeverityBgColor helpers.
+    Render: <AnomalyAlerts anomalies={anomalies} maxDisplay={5} />
+  `,
 
-// Usage - Format for display:
-const styling = formatInsightForDisplay(insight);
-// Returns: { icon: "⚠️", bgColor: "bg-yellow-50", ... }
+  aiInsights: `
+    Import AIInsightGenerator component and insightGenerator utilities.
+    Pass dashboardState to generateInsights() for automatic classification.
+    Format insights with formatInsightForDisplay for styling.
+    Render: <AIInsightGenerator dashboardState={state} onLoadingChange={setLoading} />
+  `,
 
-// Render component:
-// <AIInsightGenerator dashboardState={state} onLoadingChange={setLoading} />
-
-// ============================================================================
-// FEATURE 5: PERFORMANCE OPTIMIZATION
-// ============================================================================
-
-import { useEnhancedDashboardData, useDashboardDataOptimized } from "@/hooks/useEnhancedDashboardData";
-
-// Usage - Optimized data computation:
-const {
-  anomalies,
-  scoreFactors,
-  energyHistory,
-  energyStats,
-  getAnomalyCount,
-} = useEnhancedDashboardData({ dashboardState });
-
-// Usage - Optimization metadata:
-const { cacheKeyFactors, predictionData } = useDashboardDataOptimized(dashboardState);
-
-// For React Query optimization in your API fetch:
-/*
-import { useQuery } from '@tanstack/react-query';
-
-useQuery({
-  queryKey: ['weather', location],
-  queryFn: () => fetchWeather(location),
-  staleTime: 5 * 60 * 1000,  // 5 minutes
-  gcTime: 10 * 60 * 1000,    // 10 minutes
-});
-*/
+  performance: `
+    Import useEnhancedDashboardData hook for optimized computations.
+    Wrap components with React.memo() to prevent unnecessary re-renders.
+    Use useMemo for expensive calculations on arrays.
+    Use React Query with proper staleTime and gcTime settings.
+  `,
+};
 
 // ============================================================================
-// COMPLETE INTEGRATION EXAMPLE
+// COMMON INTEGRATION CHECKLIST
 // ============================================================================
 
-/*
-import { memo, useState, useMemo } from 'react';
-import { SustainabilityScoreCard } from "@/components/dashboard/SustainabilityScoreCard";
-import { PredictionChart } from "@/components/dashboard/PredictionChart";
-import { AnomalyAlerts, AnomalySummary } from "@/components/dashboard/AnomalyAlerts";
-import { AIInsightGenerator } from "@/components/dashboard/AIInsightGenerator";
-import { useEnhancedDashboardData } from "@/hooks/useEnhancedDashboardData";
-import { useDashboardData } from "@/hooks/useDashboardData";
-
-export const EnhancedDashboard = memo(() => {
-  const { state, loading } = useDashboardData();
-  const { anomalies, scoreFactors, energyHistory } = useEnhancedDashboardData({
-    dashboardState: state,
-  });
-  const [previousScore, setPreviousScore] = useState(0);
-
-  return (
-    <main className="p-6 max-w-[1600px] mx-auto space-y-6">
-      {/* Anomalies First */}
-      {anomalies.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-lg font-bold text-red-600">Active Anomalies</h2>
-          <AnomalyAlerts anomalies={anomalies} maxDisplay={3} />
-        </div>
-      )}
-
-      {/* Main Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <SustainabilityScoreCard 
-          factors={scoreFactors} 
-          previousScore={previousScore} 
-        />
-        {/* Other metric cards */}
-      </div>
-
-      {/* Predictions & Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <PredictionChart
-          energyHistory={energyHistory}
-          aqi={state.airQuality?.aqi || 50}
-          temperature={state.weather?.temperature || 20}
-          windSpeed={state.weather?.windSpeed || 0}
-        />
-        <AnomalySummary anomalies={anomalies} />
-      </div>
-
-      {/* AI Insights */}
-      <AIInsightGenerator dashboardState={state} />
-    </main>
-  );
-});
-*/
+export const INTEGRATION_CHECKLIST = [
+  "Import all components from src/components/dashboard/",
+  "Import utilities from src/lib/",
+  "Import hooks from src/hooks/",
+  "Add SustainabilityScoreCard to metric grid",
+  "Add PredictionChart with 12-hour forecast tabs",
+  "Add AnomalyAlerts at top of dashboard",
+  "Add AIInsightGenerator section for insights",
+  "Connect useEnhancedDashboardData hook",
+  "Wrap components with React.memo for performance",
+  "Test with React DevTools Profiler",
+  "Verify no TypeScript compilation errors",
+  "Test responsive layout on mobile/tablet/desktop",
+];
 
 // ============================================================================
-// TYPE DEFINITIONS
-// ============================================================================
-
-/*
-// From scoreCalculation.ts
-interface ScoreFactors {
-  aqi: number;
-  energyConsumption: number;
-  carbonEmission: number;
-  temperatureSeverity: number;
-}
-
-// From anomalyDetection.ts
-interface Anomaly {
-  id: string;
-  metric: string;
-  currentValue: number;
-  expectedValue: number;
-  deviation: number;
-  severity: "low" | "medium" | "high";
-  timestamp: Date;
-  description: string;
-}
-
-// From predictions.ts
-interface PredictionPoint {
-  time: string;
-  value: number;
-}
-
-// From insightGenerator.ts
-interface AIInsight {
-  id: string;
-  title: string;
-  message: string;
-  category: "energy" | "air" | "carbon" | "sustainability" | "weather" | "general";
-  severity: "info" | "warning" | "success";
-  timestamp: Date;
-  actionable: boolean;
-  suggestion?: string;
-}
-*/
-
-// ============================================================================
-// COMMON PATTERNS
-// ============================================================================
-
-// Pattern 1: Conditional Rendering Based on Severity
-/*
-{anomalies.some(a => a.severity === 'high') && (
-  <AnomalyBadge count={anomalies.length} severe={true} />
-)}
-*/
-
-// Pattern 2: Responsive Grid Layout for Charts
-/*
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-  <PredictionChart {...props} />
-  <AnomalySummary anomalies={anomalies} />
-</div>
-*/
-
-// Pattern 3: Loading State
-/*
-{loading ? (
-  <div className="animate-pulse bg-muted rounded-lg h-96" />
-) : (
-  <SustainabilityScoreCard {...props} />
-)}
-*/
-
-// Pattern 4: Memoization for Performance
-/*
-const memoizedAnomalies = useMemo(() => 
-  detectMultipleAnomalies(metrics),
-  [metrics]
-);
-*/
-
-// ============================================================================
-// USEFUL EXPORTS SUMMARY
+// EXPORTS SUMMARY
 // ============================================================================
 
 export const EXPORTS_SUMMARY = {
@@ -332,5 +138,6 @@ export const EXPORTS_SUMMARY = {
 
   // Files
   "ADVANCED_FEATURES.md": "Comprehensive feature documentation",
-  "FEATURE_INTEGRATION_GUIDE.ts": "Integration examples & tips",
+  "FEATURE_INTEGRATION_GUIDE.md": "Integration examples & tips",
+  "QUICK_REFERENCE.md": "Quick reference with code examples",
 };

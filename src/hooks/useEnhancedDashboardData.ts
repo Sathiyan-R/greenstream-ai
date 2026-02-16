@@ -23,8 +23,8 @@ export function useEnhancedDashboardData({ dashboardState }: EnhancedDashboardDa
     // Energy anomalies
     if (dashboardState.energyReadings.length > 0) {
       metrics["Energy Consumption"] = {
-        current: dashboardState.energyReadings[0],
-        history: dashboardState.energyReadings.slice(0, 10).map((r) => r),
+        current: dashboardState.energyReadings[0].energyUsage,
+        history: dashboardState.energyReadings.slice(0, 10).map((r) => r.energyUsage),
       };
     }
 
@@ -43,14 +43,14 @@ export function useEnhancedDashboardData({ dashboardState }: EnhancedDashboardDa
   const scoreFactors = useMemo((): ScoreFactors => {
     return {
       aqi: dashboardState.airQuality?.aqi || 50,
-      energyConsumption: dashboardState.energyReadings?.[0] || 0,
-      carbonEmission: dashboardState.carbon?.total || 0,
+      energyConsumption: dashboardState.energyReadings?.[0]?.energyUsage || 0,
+      carbonEmission: dashboardState.carbon?.totalEmissions || 0,
       temperatureSeverity: Math.abs((dashboardState.weather?.temperature || 20) - 20),
     };
   }, [
     dashboardState.airQuality?.aqi,
     dashboardState.energyReadings,
-    dashboardState.carbon?.total,
+    dashboardState.carbon?.totalEmissions,
     dashboardState.weather?.temperature,
   ]);
 
@@ -65,7 +65,7 @@ export function useEnhancedDashboardData({ dashboardState }: EnhancedDashboardDa
       return { current: 0, average: 0, peak: 0, min: 0 };
     }
 
-    const data = dashboardState.energyReadings;
+    const data = dashboardState.energyReadings.map((r) => r.energyUsage);
     return {
       current: data[0],
       average: calculateMean(data),
@@ -102,13 +102,13 @@ export function useDashboardDataOptimized(dashboardState: DashboardState) {
       energyHistory: dashboardState.energyHistory?.slice(-48) || [],
       aqi: dashboardState.airQuality?.aqi || 50,
       temperature: dashboardState.weather?.temperature || 20,
-      windSpeed: dashboardState.weather?.windSpeed || 0,
+      windSpeed: dashboardState.weather?.wind_speed || 0,
     };
   }, [
     dashboardState.energyHistory,
     dashboardState.airQuality?.aqi,
     dashboardState.weather?.temperature,
-    dashboardState.weather?.windSpeed,
+    dashboardState.weather?.wind_speed,
   ]);
 
   return {

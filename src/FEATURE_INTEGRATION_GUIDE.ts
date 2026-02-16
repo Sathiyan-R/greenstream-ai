@@ -1,224 +1,87 @@
 /**
  * Dashboard Integration Guide
  * 
- * This file demonstrates how to integrate all 5 new advanced features
+ * This file provides reference data for integrating new advanced features
  * into your existing Dashboard component.
  * 
- * Copy the relevant sections into your Dashboard.tsx
+ * See FEATURE_INTEGRATION_GUIDE.md for code examples
  */
 
 // ============================================================================
-// 1. IMPORTS FOR NEW FEATURES
+// COMPONENT IMPORTS
 // ============================================================================
 
-/*
-import { SustainabilityScoreCard } from "@/components/dashboard/SustainabilityScoreCard";
-import { PredictionChart } from "@/components/dashboard/PredictionChart";
-import { AnomalyAlerts, AnomalySummary } from "@/components/dashboard/AnomalyAlerts";
-import { AIInsightGenerator } from "@/components/dashboard/AIInsightGenerator";
-import { useEnhancedDashboardData } from "@/hooks/useEnhancedDashboardData";
-import { calculateSustainabilityScore } from "@/lib/scoreCalculation";
-*/
+export const COMPONENTS_TO_IMPORT = [
+  "SustainabilityScoreCard from @/components/dashboard/SustainabilityScoreCard",
+  "PredictionChart from @/components/dashboard/PredictionChart",
+  "AnomalyAlerts, AnomalySummary from @/components/dashboard/AnomalyAlerts",
+  "AIInsightGenerator from @/components/dashboard/AIInsightGenerator",
+  "useEnhancedDashboardData from @/hooks/useEnhancedDashboardData",
+];
 
 // ============================================================================
-// 2. IN YOUR DASHBOARD COMPONENT
+// HOOK USAGE
 // ============================================================================
 
-/*
+export const HOOK_USAGE_EXAMPLE = `
 const YourDashboard = () => {
-  const { state, loading, apiStatus, refresh } = useDashboardData();
-
-  // NEW: Use enhanced dashboard hook for optimized data
-  const { anomalies, scoreFactors, energyHistory, energyStats } = 
+  const { state, loading } = useDashboardData();
+  const { anomalies, scoreFactors, energyHistory } = 
     useEnhancedDashboardData({ dashboardState: state });
 
-  // Optional: Track previous score for trend
-  const [previousScore, setPreviousScore] = React.useState(0);
-
-  React.useEffect(() => {
-    if (state.sustainabilityScore) {
-      setPreviousScore(state.sustainabilityScore);
-    }
-  }, [state.sustainabilityScore]);
-
   return (
-    <main className="min-h-screen bg-background">
-      {/* Existing header code... */}
-
-      <div className="p-4 md:p-6 max-w-[1600px] mx-auto space-y-4">
-        {/* 
-          ========== FEATURE 1: ANOMALY ALERTS (SHOW AT TOP) ==========
-          Display anomalies prominently for immediate action
-        */}
-        {anomalies.length > 0 && (
-          <section className="space-y-2">
-            <h2 className="text-base font-heading font-bold text-destructive">
-              ⚠️ Active Anomalies ({anomalies.length})
-            </h2>
-            <AnomalyAlerts anomalies={anomalies} maxDisplay={3} />
-          </section>
-        )}
-
-        {/*
-          ========== EXISTING DASHBOARD METRICS ==========
-          Keep your existing metric cards here
-        */}
-        {/* Your existing metrics grid... */}
-
-        {/*
-          ========== FEATURE 1: SUSTAINABILITY SCORE ==========
-          Add to main metrics grid (high priority position)
-        */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Existing metric cards */}
-
-          {/* NEW: Sustainability Score */}
-          <div className="lg:col-span-1">
-            <SustainabilityScoreCard
-              factors={scoreFactors}
-              previousScore={previousScore}
-            />
-          </div>
-        </div>
-
-        {/*
-          ========== FEATURE 2: PREDICTION CHARTS ==========
-          Add as a prominent section below metrics
-        */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <PredictionChart
-            energyHistory={energyHistory}
-            aqi={state.airQuality?.aqi || 50}
-            temperature={state.weather?.temperature || 20}
-            windSpeed={state.weather?.windSpeed || 0}
-            carbonIntensity={0.4}
-          />
-
-          {/*
-            ========== FEATURE 3: ANOMALY SUMMARY ==========
-            Show comprehensive anomaly analysis
-          */}
-          <AnomalySummary anomalies={anomalies} />
-        </section>
-
-        {/*
-          ========== FEATURE 4: AI INSIGHTS ==========
-          Add as a prominent card
-        */}
-        <section>
-          <AIInsightGenerator dashboardState={state} />
-        </section>
-
-        {/* Your existing dashboard sections */}
-      </div>
+    <main>
+      <SustainabilityScoreCard factors={scoreFactors} />
+      <PredictionChart energyHistory={energyHistory} {...} />
+      <AnomalyAlerts anomalies={anomalies} />
+      <AIInsightGenerator dashboardState={state} />
     </main>
   );
 };
-*/
+`;
 
 // ============================================================================
-// 3. PERFORMANCE OPTIMIZATION TIPS
+// PERFORMANCE OPTIMIZATION TIPS
 // ============================================================================
 
-/*
-A. MEMOIZE YOUR CHARTS:
-   - Both PredictionChart and existing Recharts components are wrapped in memo()
-   - This prevents re-renders when props haven't changed
-
-B. REACT QUERY CACHING:
-   In your useDashboardData hook, update staleTime:
-
-   const weatherQuery = useQuery({
-     queryKey: ['weather', location],
-     queryFn: () => fetchWeather(location),
-     staleTime: 5 * 60 * 1000,  // 5 minutes - data stays fresh
-     gcTime: 10 * 60 * 1000,    // 10 minutes - then garbage collected
-   });
-
-C. LAZY LOAD HEAVY SECTIONS:
-   import { lazy, Suspense } from 'react';
-   
-   const AIInsightGenerator = lazy(() => 
-     import('@/components/dashboard/AIInsightGenerator')
-       .then(m => ({ default: m.AIInsightGenerator }))
-   );
-
-   // In JSX:
-   <Suspense fallback={<div>Loading insights...</div>}>
-     <AIInsightGenerator dashboardState={state} />
-   </Suspense>
-
-D. AVOID UNNECESSARY RE-RENDERS:
-   - useEnhancedDashboardData already memoizes expensive calculations
-   - Only pass necessary dependencies to useMemo/useCallback
-   - Consider splitting large dashboard into smaller components with React.memo()
-*/
+export const PERFORMANCE_TIPS = [
+  "Memoize your charts with React.memo() to prevent re-renders",
+  "Use React Query with staleTime: 5min, gcTime: 10min",
+  "Lazy load heavy components with React.lazy()",
+  "Use useEnhancedDashboardData to memoize expensive calculations",
+  "Only pass necessary dependencies to useMemo/useCallback",
+  "Split large dashboard into smaller components with React.memo()",
+  "Monitor performance with Chrome DevTools Profiler",
+];
 
 // ============================================================================
-// 4. API INTEGRATION FOR AI INSIGHTS
+// API INTEGRATION FOR AI INSIGHTS
 // ============================================================================
 
-/*
-OPTIONAL: For real AI-powered insights, extend your backend:
+export const API_INTEGRATION_GUIDE = `
+For real AI-powered insights, extend your Supabase backend:
 
-In your Supabase Edge Function (supabase/functions/ai-insights/index.ts):
+1. Create supabase/functions/ai-insights/index.ts
+2. Send dashboardData to Claude/GPT-4 API
+3. Parse structured responses as AIInsight objects
+4. Replace generateInsights() call in AIInsightGenerator.tsx
 
-export default async (req: Request) => {
-  const { dashboardData } = await req.json();
-
-  const prompt = `
-    Analyze this environmental data and provide 2-3 actionable insights:
-    - AQI: ${dashboardData.aqi}
-    - Energy: ${dashboardData.energy} kWh
-    - Carbon: ${dashboardData.carbon} kg CO2
-    - Temperature: ${dashboardData.temperature}°C
-
-    Provide insights in JSON format with title, message, category, severity.
-  `;
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4-turbo',
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-
-  return response;
-};
-
-Then update AIInsightGenerator to call this endpoint instead of generateInsights().
-*/
+Example: Call your edge function instead of using mock data
+`;
 
 // ============================================================================
-// 5. TESTING YOUR NEW FEATURES
+// TESTING YOUR NEW FEATURES
 // ============================================================================
 
-/*
-Test anomaly detection:
-- Create mock data with sudden spikes
-- Verify alerts appear with correct severity
-- Test dismissal functionality
-
-Test predictions:
-- Verify chart renders with correct data
-- Check tab switching works smoothly
-- Monitor performance with DevTools
-
-Test sustainability score:
-- Adjust factors and verify score calculation
-- Check trend indicator shows correct direction
-- Test color changes based on score ranges
-
-Test AI insights:
-- Verify insights generate on data changes
-- Test refresh button functionality
-- Check formatting and icons display correctly
-*/
+export const TESTING_CHECKLIST = [
+  "Anomaly detection: Create mock data with 50% spikes",
+  "Predictions: Verify all 3 charts render correctly",
+  "Sustainability score: Test with different factor values",
+  "AI insights: Check that insights generate on data changes",
+  "Performance: Use React DevTools Profiler",
+  "Responsive: Test on mobile, tablet, desktop",
+  "TypeScript: Verify no compilation errors",
+];
 
 // ============================================================================
 // 6. COMPONENT EXPORTS

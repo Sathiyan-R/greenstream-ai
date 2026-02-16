@@ -1,270 +1,274 @@
 /**
- * EXAMPLE: Enhanced Dashboard Component
+ * EXAMPLE: Enhanced Dashboard Component Reference
  * 
- * This is a complete example showing how to integrate all 5 advanced features
- * into your existing Dashboard.tsx
- * 
- * Copy this as a reference for your actual implementation.
+ * This file exports reference patterns for integrating the 5 advanced features.
+ * For full implementation code, see EXAMPLE_ENHANCED_DASHBOARD.md
  */
 
-import { memo, useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { RefreshCw, AlertTriangle, TrendingUp } from "lucide-react";
+// ============================================================================
+// COMPONENT STRUCTURE REFERENCE
+// ============================================================================
 
-// New feature imports
-import { SustainabilityScoreCard } from "@/components/dashboard/SustainabilityScoreCard";
-import { PredictionChart } from "@/components/dashboard/PredictionChart";
-import { AnomalyAlerts, AnomalySummary, AnomalyBadge } from "@/components/dashboard/AnomalyAlerts";
-import { AIInsightGenerator } from "@/components/dashboard/AIInsightGenerator";
+export const COMPONENT_STRUCTURE = {
+  layout: "Single main container with sections vertically stacked",
+  sections: [
+    "Header with navigation and anomaly badge",
+    "Critical alerts section (high-severity anomalies)",
+    "Key metrics grid (sustainability score, energy, AQI, carbon)",
+    "Forecast section (12-hour predictions and anomaly summary)",
+    "AI insights section (auto-generated recommendations)",
+    "Debug info (development only)",
+  ],
+};
 
-// Hooks and utilities
-import { useDashboardData } from "@/hooks/useDashboardData";
-import { useEnhancedDashboardData } from "@/hooks/useEnhancedDashboardData";
-import { Link } from "react-router-dom";
-import { Leaf } from "lucide-react";
+// ============================================================================
+// INTEGRATION PATTERN EXAMPLES
+// ============================================================================
 
-/**
- * Enhanced Dashboard Component
- * Integrates all 5 advanced features
- */
-export const EnhancedDashboard = memo(() => {
-  // ✅ Get existing dashboard data
-  const { state, loading, apiStatus, refresh } = useDashboardData();
+export const INTEGRATION_PATTERNS = {
+  hooks: {
+    getDashboardData: "const { state, loading, apiStatus, refresh } = useDashboardData();",
+    getEnhancedData:
+      "const { anomalies, scoreFactors, energyHistory, energyStats, getAnomalyCount } = useEnhancedDashboardData({ dashboardState: state });",
+  },
 
-  // ✅ FEATURE 5: Use enhanced data hook for optimized calculations
-  const { anomalies, scoreFactors, energyHistory, energyStats, getAnomalyCount } =
-    useEnhancedDashboardData({ dashboardState: state });
+  stateManagement: {
+    previousScore: "Track with useState for trend calculation",
+    loading: "Show loading spinner while data fetches",
+    scrolling: "Auto-scroll to top on component mount",
+  },
 
-  // Track previous score for trend indicator
-  const [previousScore, setPreviousScore] = useState(state.sustainabilityScore || 0);
+  rendering: {
+    conditionalAlerts: "Render anomaly alerts only if anomalies.length > 0",
+    severityFiltering: "Filter anomalies by severity for different sections",
+    responsiveGrid: "Use grid-cols-1 md:grid-cols-2 lg:grid-cols-4 for metrics",
+  },
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  animations: {
+    container: "motion.div with initial opacity and y position",
+    delayed: "Use staggered delays (0.1s, 0.2s, 0.3s, etc.) for cascade effect",
+    transitions: "3s for button hover, 300ms for UI transitions",
+  },
+};
 
-  // Update previous score when current changes
-  useEffect(() => {
-    if (state.sustainabilityScore && state.sustainabilityScore !== previousScore) {
-      setPreviousScore(state.sustainabilityScore);
-    }
-  }, [state.sustainabilityScore, previousScore]);
+// ============================================================================
+// DATA FLOW PATTERN
+// ============================================================================
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[80vh]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted-foreground text-sm">Loading environmental data...</p>
-        </div>
-      </div>
-    );
-  }
+export const DATA_FLOW = `
+1. Component mounts → useDashboardData() fetches from API
+2. Raw data arrives → useEnhancedDashboardData() processes it
+3. Processing generates:
+   - anomalies: Detected using Z-score algorithm
+   - scoreFactors: AQI, energy, carbon, temperature
+   - energyHistory: Historical energy readings
+   - energyStats: Min, max, average calculations
+   - getAnomalyCount: Function to count by severity
 
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* ========== HEADER ========== */}
-      <header className="border-b border-border px-6 py-3 flex items-center justify-between sticky top-0 z-50 bg-background/80 backdrop-blur-xl">
-        <Link to="/" className="flex items-center gap-2">
-          <Leaf className="w-5 h-5 text-primary" />
-          <span className="font-heading font-bold text-lg">GreenStream AI</span>
-        </Link>
+4. Render triggers with processed data
+5. Each feature displays its data:
+   - SustainabilityScoreCard: Uses scoreFactors
+   - PredictionChart: Uses energyHistory, AQI, temperature, wind
+   - AnomalyAlerts: Uses anomalies array
+   - AIInsightGenerator: Uses full dashboardState
 
-        <div className="flex items-center gap-4">
-          {/* ✅ FEATURE 3: Anomaly badge in header */}
-          {anomalies.length > 0 && (
-            <AnomalyBadge
-              count={anomalies.length}
-              severe={getAnomalyCount("high") > 0}
-            />
-          )}
+6. User interactions:
+   - Click refresh button → calls refresh()
+   - Scroll to top → useEffect runs on mount
+   - Previous score update → monitored for trend
+`;
 
-          <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-primary/10">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
-            <span className="text-xs font-heading text-primary font-semibold">LIVE</span>
-          </div>
+// ============================================================================
+// LAYOUT GRID STRUCTURE
+// ============================================================================
 
-          <button
-            onClick={refresh}
-            className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-            title="Refresh"
-          >
-            <RefreshCw className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
-      </header>
+export const LAYOUT_GRID = {
+  "Metrics Grid": {
+    columns: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+    cards: [
+      "SustainabilityScoreCard (takes full width or 1 column)",
+      "Other metric cards from existing dashboard",
+    ],
+  },
 
-      {/* ========== MAIN CONTENT ========== */}
-      <div className="p-4 md:p-6 max-w-[1600px] mx-auto space-y-6">
-        
-        {/* ========== SECTION 1: CRITICAL ALERTS ========== */}
-        {/* ✅ FEATURE 3: Show high-severity anomalies at top */}
-        {getAnomalyCount("high") > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-3 p-4 rounded-lg border border-red-200 bg-red-50"
-          >
-            <div className="flex items-center gap-2 text-red-700 font-semibold">
-              <AlertTriangle className="w-5 h-5" />
-              <h2>Critical Anomalies ({getAnomalyCount("high")})</h2>
-            </div>
-            <AnomalyAlerts
-              anomalies={anomalies.filter((a) => a.severity === "high")}
-              maxDisplay={3}
-            />
-          </motion.section>
-        )}
+  "Forecast Grid": {
+    columns: "grid-cols-1 lg:grid-cols-2",
+    sections: [
+      "PredictionChart - 12-hour forecasts with tabs",
+      "AnomalySummary - Summary statistics",
+    ],
+  },
 
-        {/* ========== SECTION 2: KEY METRICS GRID ========== */}
-        {/* ✅ FEATURE 1: Sustainability Score Card as primary metric */}
-        <section>
-          <h2 className="text-base font-heading font-bold mb-4">Dashboard Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            {/* Sustainability Score - FEATURE 1 */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              <SustainabilityScoreCard
-                factors={scoreFactors}
-                previousScore={previousScore}
-              />
-            </motion.div>
+  "Alert Section": {
+    columns: "Full width but only renders if anomalies detected",
+    content: "AnomalyAlerts component with high-severity anomalies",
+  },
 
-            {/* Example: Existing metric cards would go here */}
-            {/* 
-            <MetricCard label="Current Energy" value={energyStats.current} unit="kWh" icon={Zap} />
-            <MetricCard label="AQI" value={state.airQuality?.aqi} unit="points" icon={Wind} />
-            <MetricCard label="Carbon" value={state.carbon?.total} unit="kg CO₂" icon={Activity} />
-            */}
-          </div>
-        </section>
+  "Insights Section": {
+    columns: "Full width",
+    content: "AIInsightGenerator component",
+  },
+};
 
-        {/* ========== SECTION 3: PREDICTIONS & ANOMALIES ========== */}
-        <section className="space-y-4">
-          <h2 className="text-base font-heading font-bold">Analysis & Forecasts</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            
-            {/* Prediction Chart - FEATURE 2 */}
-            <motion.div
-              className="lg:col-span-3"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <PredictionChart
-                energyHistory={energyHistory.map((val) => typeof val === "number" ? val : 0)}
-                aqi={state.airQuality?.aqi || 50}
-                temperature={state.weather?.temperature || 20}
-                windSpeed={state.weather?.windSpeed || 0}
-                carbonIntensity={0.4}
-              />
-            </motion.div>
+// ============================================================================
+// PROP PASSING PATTERN
+// ============================================================================
 
-            {/* Anomaly Summary - FEATURE 3 */}
-            <motion.div
-              className="lg:col-span-2 space-y-4"
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <AnomalySummary anomalies={anomalies} />
-            </motion.div>
-          </div>
-        </section>
+export const PROP_PATTERNS = {
+  SustainabilityScoreCard: {
+    factors: "scoreFactors from useEnhancedDashboardData",
+    previousScore: "Tracked state for trend calculation",
+  },
 
-        {/* ========== SECTION 4: ALL ANOMALIES ========== */}
-        {/* ✅ FEATURE 3: Comprehensive anomaly display */}
-        {anomalies.length > 0 && (
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-3"
-          >
-            <h2 className="text-base font-heading font-bold">All Anomalies</h2>
-            <AnomalyAlerts
-              anomalies={anomalies}
-              maxDisplay={5}
-            />
-          </motion.section>
-        )}
+  PredictionChart: {
+    energyHistory: "Array of historical energy values",
+    aqi: "Current air quality index from state",
+    temperature: "Current temperature from state",
+    windSpeed: "Use wind_speed from state (not windSpeed)",
+    carbonIntensity: "CO2 emissions factor, typically 0.4",
+  },
 
-        {/* ========== SECTION 5: AI INSIGHTS ========== */}
-        {/* ✅ FEATURE 4: AI-powered insights */}
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <AIInsightGenerator
-            dashboardState={state}
-            onLoadingChange={(loading) => {
-              // Handle loading state if needed
-            }}
-          />
-        </motion.section>
+  AnomalyAlerts: {
+    anomalies: "Array from useEnhancedDashboardData, can be filtered",
+    maxDisplay: "Maximum anomalies to show, typically 3-5",
+  },
 
-        {/* ========== SECTION 6: ENERGY EFFICIENCY ========== */}
-        {/* Example: Additional dashboard section */}
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="glass-panel rounded-lg border border-border p-6"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-heading font-bold">Energy Statistics</h3>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Current</p>
-              <p className="text-lg font-semibold">{energyStats.current} kWh</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Average</p>
-              <p className="text-lg font-semibold">{energyStats.average.toFixed(0)} kWh</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Peak</p>
-              <p className="text-lg font-semibold">{energyStats.peak.toFixed(0)} kWh</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Minimum</p>
-              <p className="text-lg font-semibold">{energyStats.min.toFixed(0)} kWh</p>
-            </div>
-          </div>
-        </motion.section>
+  AnomalySummary: {
+    anomalies: "Complete array of all anomalies",
+  },
 
-        {/* ========== FOOTER INFO ========== */}
-        <div className="mt-8 p-4 rounded-lg bg-muted/30 border border-border/30 text-center text-sm text-muted-foreground">
-          <p>Last updated: {new Date().toLocaleTimeString()}</p>
-          <p className="text-xs mt-2">
-            ✨ All features demonstrated: Sustainability Score • Predictions • Anomalies • AI Insights • Optimizations
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-});
+  AIInsightGenerator: {
+    dashboardState: "Full state object from useDashboardData",
+    onLoadingChange: "Optional callback for loading state",
+  },
+};
 
-EnhancedDashboard.displayName = "EnhancedDashboard";
+// ============================================================================
+// COMMON ISSUES AND SOLUTIONS
+// ============================================================================
 
-export default EnhancedDashboard;
+export const TROUBLESHOOTING = {
+  "No data displayed": `
+    - Check useDashboardData hook returns valid state
+    - Verify API endpoints are accessible
+    - Check browser console for fetch errors
+    - Ensure mock data is set up if API unavailable
+  `,
 
-/**
- * NEXT STEPS:
- * 
- * 1. Copy this file to src/pages/Dashboard.tsx
- * 2. Or integrate the sections into your existing Dashboard.tsx
- * 3. Replace placeholder metric cards with your actual components
- * 4. Adjust spacing and grid layout to match your design
- * 5. Verify all imports are available
- * 6. Test with real data from your backend
- * 7. Adjust colors/styling to match your theme
- * 8. Performance test with React DevTools Profiler
- */
+  "Type errors on windSpeed": `
+    - API uses wind_speed not windSpeed
+    - Update PredictionChart prop or add conversion layer
+  `,
+
+  "Performance issues": `
+    - Wrap components with React.memo()
+    - Use useMemo for expensive calculations
+    - Check React DevTools Profiler for bottlenecks
+    - Ensure re-renders aren't cascading unnecessarily
+  `,
+
+  "Anomalies not showing": `
+    - Verify historical data has enough samples (>10 recommended)
+    - Check Z-score threshold (default 2)
+    - Ensure current value is actually anomalous (>2 std dev)
+  `,
+
+  "Predictions look wrong": `
+    - Verify historical data is sorted by time
+    - Check that prediction functions receive arrays not single values
+    - Ensure time period (hours) is reasonable (12 is typical)
+  `,
+};
+
+// ============================================================================
+// PERFORMANCE TIPS
+// ============================================================================
+
+export const PERFORMANCE_TIPS = [
+  "Wrap EnhancedDashboard with React.memo() to prevent parent re-renders",
+  "Use useCallback for event handlers passed as props",
+  "Memoize anomalies array: useMemo(() => detectAnomalies(...), [deps])",
+  "Implement pagination or virtualization for large anomaly lists",
+  "Defer non-critical updates with useTransition (React 18+)",
+  "Use React Query or SWR for efficient data fetching",
+  "Optimize chart rendering with recharts shouldComponentUpdate",
+  "Lazy load AI insights component if not immediately visible",
+  "Profile with React DevTools Profiler before optimization",
+  "Monitor bundle size with size-limit or bundle-analyzer",
+];
+
+// ============================================================================
+// CUSTOMIZATION EXAMPLES
+// ============================================================================
+
+export const CUSTOMIZATION_OPTIONS = `
+Change animation timing:
+  - Adjust delay values in motion.div components
+  - Modify transition duration in className
+
+Modify anomaly display:
+  - Filter by severity: anomalies.filter(a => a.severity === 'high')
+  - Limit count: anomalies.slice(0, 5)
+  - Group by type: anomalies.reduce((groups, a) => {...}, {})
+
+Customize chart props:
+  - Change carbonIntensity from 0.4 to your actual value
+  - Adjust forecast hours (default 12, can be 6, 24, etc.)
+  - Modify chart type (line, bar, area) in PredictionChart
+
+Theme customization:
+  - Change color classes: text-red-600 → text-orange-600
+  - Adjust spacing: gap-4 → gap-6
+  - Modify border styles: border-red-200 → border-red-300
+`;
+
+// ============================================================================
+// TESTING CHECKLIST
+// ============================================================================
+
+export const TESTING_CHECKLIST = [
+  "Sustainability Score Card renders with correct score and status",
+  "Prediction charts display all 3 chart types (energy, AQI, carbon)",
+  "Anomaly alerts show only when anomalies exist",
+  "AI insights generate automatically without external API",
+  "Performance is acceptable with 100+ anomalies",
+  "Responsive design works on mobile (375px), tablet (768px), desktop (1024px+)",
+  "TypeScript compilation passes without errors",
+  "No console warnings about missing keys or dependencies",
+  "Loading state displays while data fetches",
+  "Refresh button properly re-fetches data",
+  "Previous score tracking works for trend indicator",
+  "All imports resolve correctly",
+  "Animations are smooth at 60 FPS (check DevTools)",
+];
+
+// ============================================================================
+// FILE REFERENCES
+// ============================================================================
+
+export const FILE_REFERENCES = {
+  documentation: {
+    "ADVANCED_FEATURES.md": "Complete feature documentation with examples",
+    "FEATURE_INTEGRATION_GUIDE.md": "Integration patterns and best practices",
+    "EXAMPLE_ENHANCED_DASHBOARD.md": "Full component code example",
+    "QUICK_REFERENCE.md": "Copy-paste patterns",
+  },
+
+  components: {
+    "SustainabilityScoreCard.tsx": "Score display with trend",
+    "PredictionChart.tsx": "12-hour forecast charts",
+    "AnomalyAlerts.tsx": "Anomaly display components",
+    "AIInsightGenerator.tsx": "AI insights panel",
+  },
+
+  utilities: {
+    "scoreCalculation.ts": "Score and status logic",
+    "anomalyDetection.ts": "Z-score anomaly detection",
+    "predictions.ts": "Time series forecasting",
+    "insightGenerator.ts": "Insight rule engine",
+  },
+
+  hooks: {
+    "useEnhancedDashboardData.ts": "Optimized data calculations",
+  },
+};
