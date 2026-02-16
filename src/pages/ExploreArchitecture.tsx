@@ -548,23 +548,65 @@ const RAGFlowSection = () => {
 
         {/* Flow Diagram */}
         <div className="relative mb-16">
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-5 gap-4"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={{
-              hidden: { opacity: 0 },
-              visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-            }}
-          >
+          {/* Desktop: Horizontal flow with connectors */}
+          <div className="hidden md:block">
+            <div className="grid grid-cols-5 gap-4 items-stretch">
+              {ragSteps.map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                  className="h-full"
+                >
+                  <GlowCard variant={idx % 2 === 0 ? "primary" : "secondary"} className="h-full flex flex-col">
+                    <div className="text-center space-y-4 flex flex-col justify-center items-center h-full">
+                      <div
+                        className={`p-4 rounded-lg w-fit mx-auto flex-shrink-0 ${
+                          idx % 2 === 0
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-blue-500/20 text-blue-400"
+                        }`}
+                      >
+                        <item.icon className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center">
+                        <p className="font-bold text-white text-sm mb-2">
+                          {item.step}
+                        </p>
+                        <p className="text-xs text-gray-400 line-clamp-3">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  </GlowCard>
+                </motion.div>
+              ))}
+            </div>
+            
+            {/* Horizontal connectors overlay */}
+            <div className="absolute top-1/2 left-0 right-0 h-px -translate-y-1/2 flex items-center justify-between pointer-events-none">
+              {ragSteps.map((_, idx) => (
+                idx < ragSteps.length - 1 && (
+                  <div
+                    key={`connector-${idx}`}
+                    className="flex-1 h-px bg-gradient-to-r from-transparent via-green-500/30 to-transparent"
+                  />
+                )
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile: Vertical stack */}
+          <div className="md:hidden space-y-4">
             {ragSteps.map((item, idx) => (
               <motion.div
                 key={idx}
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 },
-                }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                viewport={{ once: true }}
               >
                 <GlowCard variant={idx % 2 === 0 ? "primary" : "secondary"}>
                   <div className="text-center space-y-4">
@@ -587,19 +629,9 @@ const RAGFlowSection = () => {
                     </div>
                   </div>
                 </GlowCard>
-
-                {idx < ragSteps.length - 1 && (
-                  <div className="hidden md:flex justify-center py-4">
-                    <AnimatedConnector
-                      color={idx % 2 === 0 ? "green" : "blue"}
-                      vertical={false}
-                      delay={idx * 0.1}
-                    />
-                  </div>
-                )}
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
 
         {/* RAG Details Card */}

@@ -30,7 +30,7 @@ export const GlowCard: React.FC<GlowCardProps> = ({
 
   return (
     <motion.div
-      className={`relative group cursor-pointer ${onClick ? "cursor-pointer" : ""}`}
+      className={`relative group cursor-pointer ${onClick ? "cursor-pointer" : ""} h-full`}
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.3 }}
@@ -42,7 +42,7 @@ export const GlowCard: React.FC<GlowCardProps> = ({
       <div
         className={`
           relative backdrop-blur-md bg-white/5 border rounded-xl p-6
-          transition-all duration-300
+          transition-all duration-300 h-full
           ${borderColor[variant]}
           ${isExpanded ? "ring-1 ring-green-400/50" : ""}
           ${className}
