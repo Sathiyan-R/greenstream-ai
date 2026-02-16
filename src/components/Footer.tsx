@@ -24,11 +24,7 @@ const Footer = () => (
         </div>
       </div>
 
-      <div className="mt-8 pt-6 border-t border-border text-center">
-        <p className="text-xs text-muted-foreground">
-          Built with ❤️ for the Pathway Hackathon 2025 · Powered by Pathway, LLMs & Real-Time Streaming
-        </p>
-      </div>
+
     </div>
   </footer>
 );
