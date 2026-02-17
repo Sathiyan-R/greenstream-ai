@@ -15,7 +15,7 @@ serve(async (req) => {
     if (apiKey) {
       try {
         const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city || "London")}&units=metric&appid=${apiKey}`
+          `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city || "New Delhi")}&units=metric&appid=${apiKey}`
         );
         const data = await res.json();
 
@@ -63,7 +63,7 @@ serve(async (req) => {
     // Fallback simulated forecast
     const baseTemp = 15 + Math.random() * 20;
     return new Response(JSON.stringify({
-      city: city || "London",
+      city: city || "Chennai",
       avgTemp: Math.round(baseTemp * 10) / 10,
       maxTemp: Math.round((baseTemp + 3 + Math.random() * 5) * 10) / 10,
       humidity: 40 + Math.round(Math.random() * 40),

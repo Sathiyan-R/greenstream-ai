@@ -36,21 +36,21 @@ export function useDashboardData() {
 
     // Weather
     promises.push(
-      fetchWeather("London")
+      fetchWeather("Chennai")
         .then((weather) => { setState((s) => ({ ...s, weather })); newStatus.weather = true; })
         .catch((e) => console.error("Weather fetch failed:", e))
     );
 
     // Air quality
     promises.push(
-      fetchAirQuality("London", "England", "UK")
+      fetchAirQuality("Chennai", "Tamil Nadu", "India")
         .then((airQuality) => { setState((s) => ({ ...s, airQuality })); newStatus.airQuality = true; })
         .catch((e) => console.error("Air quality fetch failed:", e))
     );
 
     // Forecast
     promises.push(
-      fetchForecast("London")
+      fetchForecast("Chennai")
         .then((forecast) => { setState((s) => ({ ...s, forecast })); newStatus.forecast = true; })
         .catch((e) => console.error("Forecast fetch failed:", e))
     );

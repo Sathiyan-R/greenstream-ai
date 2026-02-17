@@ -16,7 +16,7 @@ serve(async (req) => {
     if (apiKey) {
       try {
         const res = await fetch(
-          `https://api.airvisual.com/v2/city?city=${encodeURIComponent(city || "London")}&state=${encodeURIComponent(state || "England")}&country=${encodeURIComponent(country || "UK")}&key=${apiKey}`
+          `https://api.airvisual.com/v2/city?city=${encodeURIComponent(city || "Chennai")}&state=${encodeURIComponent(state || "Tamil Nadu")}&country=${encodeURIComponent(country || "India")}&key=${apiKey}`
         );
         const data = await res.json();
 
@@ -45,7 +45,7 @@ serve(async (req) => {
     const aqi = 30 + Math.floor(Math.random() * 80);
     const pollutants = ["p2", "p1", "o3", "n2", "s2", "co"];
     return new Response(JSON.stringify({
-      city: city || "London",
+      city: city || "Chennai",
       aqi,
       main_pollutant: pollutants[Math.floor(Math.random() * pollutants.length)],
       temperature: 15 + Math.round(Math.random() * 15),

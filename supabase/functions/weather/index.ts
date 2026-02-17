@@ -14,7 +14,7 @@ serve(async (req) => {
     if (!apiKey) throw new Error("OPENWEATHER_API_KEY not configured");
 
     const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city || "London")}&appid=${apiKey}&units=metric`
+      `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city || "Chennai")}&appid=${apiKey}&units=metric`
     );
     const data = await res.json();
 

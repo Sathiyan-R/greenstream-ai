@@ -52,7 +52,7 @@ export interface PredictionData {
 
 const EMISSION_FACTOR = 0.82; // kgCO2 per kWh
 
-export async function fetchWeather(city = "London"): Promise<WeatherData> {
+export async function fetchWeather(city = "Chennai"): Promise<WeatherData> {
   const { data, error } = await supabase.functions.invoke("weather", {
     body: { city },
   });
@@ -61,9 +61,9 @@ export async function fetchWeather(city = "London"): Promise<WeatherData> {
 }
 
 export async function fetchAirQuality(
-  city = "London",
-  state = "England",
-  country = "UK"
+  city = "Chennai",
+  state = "Tamil Nadu",
+  country = "India"
 ): Promise<AirQualityData> {
   const { data, error } = await supabase.functions.invoke("air-quality", {
     body: { city, state, country },
@@ -72,7 +72,7 @@ export async function fetchAirQuality(
   return data as AirQualityData;
 }
 
-export async function fetchForecast(city = "London"): Promise<ForecastData> {
+export async function fetchForecast(city = "Chennai"): Promise<ForecastData> {
   const { data, error } = await supabase.functions.invoke("weather-forecast", {
     body: { city },
   });
