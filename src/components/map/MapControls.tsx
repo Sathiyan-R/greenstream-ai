@@ -1,7 +1,7 @@
 import { MapMode } from "@/types/map";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Thermometer, Wind, Zap } from "lucide-react";
+import { Thermometer, Wind, Zap, Leaf } from "lucide-react";
 
 interface MapControlsProps {
   mode: MapMode;
@@ -10,6 +10,12 @@ interface MapControlsProps {
 
 export const MapControls = ({ mode, onModeChange }: MapControlsProps) => {
   const controls = [
+    {
+      id: "sustainability" as MapMode,
+      label: "Sustainability",
+      icon: Leaf,
+      color: "from-emerald-500 to-green-500",
+    },
     {
       id: "temperature" as MapMode,
       label: "Temperature",

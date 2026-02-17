@@ -1,7 +1,8 @@
 import { ZoneData, AIInsight } from "@/types/map";
+import { WeatherData, AirQualityData, EnergyReading, CarbonData } from "@/lib/api";
 
-// Chennai zones with simulated environmental data
-export const chennaiZones: ZoneData[] = [
+// Chennai zones base data with coordinates and areas
+const chennaiZonesBase: ZoneData[] = [
   {
     id: "zone-1",
     name: "T. Nagar",
@@ -135,6 +136,55 @@ export const chennaiZones: ZoneData[] = [
     area: "Industrial Estate",
   },
 ];
+
+// Export static zones for fallback
+export const chennaiZones = chennaiZonesBase;
+
+// Update zones with real-time API data
+export const updateZonesWithLiveData = (
+  weather: WeatherData | null,
+  airQuality: AirQualityData | null,
+  energyReadings: EnergyReading[],
+  carbonData: CarbonData | null
+): ZoneData[] => {
+  const totalEnergy = energyReadings.reduce((sum, r) => sum + r.energyUsage, 0);
+  const totalCarbon = carbonData?.totalEmissions || 0;
+  
+  // Add some variation to distribute data across zones
+  return chennaiZonesBase.map((zone, index) => {
+    // Use base temperature from zone, but adjust with API data if available
+    const baseTemp = zone.temperature;
+    const apiTemp = weather?.temperature || baseTemp;
+    const variation = (index % 3 - 1) * 2; // -2, 0, or +2 degrees variation
+    const temperature = Math.round(apiTemp + variation);
+    
+    // Use API AQI with zone-specific variation
+    const baseAqi = zone.aqi;
+    const apiAqi = airQuality?.aqi || baseAqi;
+    const aqiVariation = (index % 5 - 2) * 15; // Variation between zones
+    const aqi = Math.max(0, Math.round(apiAqi + aqiVariation));
+    
+    // Distribute total energy across zones based on area type
+    const energyMultiplier = zone.area?.includes("Industrial") ? 1.3 :
+                            zone.area?.includes("IT") ? 1.4 :
+                            zone.area?.includes("Commercial") ? 1.2 :
+                            zone.area?.includes("Coastal") ? 0.6 : 1.0;
+    
+    const zoneEnergy = energyReadings[index % energyReadings.length]?.energyUsage || zone.energy;
+    const energy = Math.round(zoneEnergy * energyMultiplier);
+    
+    // Calculate carbon based on energy (0.82 kg CO2 per kWh)
+    const carbon = Math.round(energy * 0.82);
+    
+    return {
+      ...zone,
+      temperature,
+      aqi,
+      energy,
+      carbon
+    };
+  });
+};
 
 // Color mapping functions
 export const getTemperatureColor = (temp: number): string => {
