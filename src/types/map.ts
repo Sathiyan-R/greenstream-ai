@@ -9,8 +9,10 @@ export interface ZoneData {
   latitude: number;
   longitude: number;
   temperature: number;
+  humidity?: number;
   aqi: number;
   energy_consumption: number;
+  energy_variance?: number;
   carbon_emission: number;
   sustainability_score: number;
   trend_temperature: string;
@@ -19,6 +21,8 @@ export interface ZoneData {
   prediction_tomorrow: string;
   ai_suggestion: string;
   last_updated: string;
+  wind_speed?: number;
+  zone_area?: number;
   // Legacy fields for compatibility
   name?: string;
   lat?: number;

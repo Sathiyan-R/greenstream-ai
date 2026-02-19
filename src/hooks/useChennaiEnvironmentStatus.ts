@@ -49,6 +49,7 @@ export function useChennaiEnvironmentStatus() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isLive, setIsLive] = useState(false);
   const [useSupabase, setUseSupabase] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -59,7 +60,7 @@ export function useChennaiEnvironmentStatus() {
   const fetchZones = async () => {
     try {
       const { data, error } = await supabase
-        .from("chennai_environment_status")
+        .from("chennai_environment_status" as any)
         .select("*")
         .order("zone_name");
 
@@ -67,17 +68,21 @@ export function useChennaiEnvironmentStatus() {
 
       if (data && data.length > 0) {
         // Transform data to match ZoneData interface
-        const transformedData: ZoneData[] = data.map((zone) => ({
+        const transformedData: ZoneData[] = data.map((zone: any) => ({
           id: zone.id,
           zone_name: zone.zone_name,
           zone_region: zone.zone_region,
           latitude: zone.latitude,
           longitude: zone.longitude,
           temperature: zone.temperature,
+          humidity: zone.humidity || 65,
           aqi: zone.aqi,
           energy_consumption: zone.energy_consumption,
+          energy_variance: zone.energy_variance || zone.energy_consumption * 0.15,
           carbon_emission: zone.carbon_emission,
           sustainability_score: zone.sustainability_score,
+          wind_speed: zone.wind_speed || 8,
+          zone_area: zone.zone_area || 50,
           trend_temperature: zone.trend_temperature,
           trend_aqi: zone.trend_aqi,
           trend_energy: zone.trend_energy,
@@ -97,14 +102,17 @@ export function useChennaiEnvironmentStatus() {
         setLastUpdated(new Date());
         setLoading(false);
         setUseSupabase(true);
+        setError(null);
       } else {
         // No data in Supabase, use fallback
         console.log("No data in Supabase, using fallback with live API data");
         setUseSupabase(false);
+        setError(null);
         updateZonesFromAPI();
       }
     } catch (error) {
       console.error("Error fetching from Supabase:", error);
+      setError(error as Error);
       // Fallback to API data
       setUseSupabase(false);
       updateZonesFromAPI();
@@ -154,12 +162,29 @@ export function useChennaiEnvironmentStatus() {
       const trend_aqi = trends[Math.floor(Math.random() * trends.length)];
       const trend_energy = trends[Math.floor(Math.random() * trends.length)];
 
+      // Calculate humidity (typically higher in coastal areas and industrial zones)
+      const humidity = isCoastal ? 68 + Math.random() * 10 : 65 + Math.random() * 8;
+
+      // Wind speed varies by zone and time
+      const windSpeedBase = isCoastal ? 12 : isIndustrial ? 6 : 9;
+      const wind_speed = windSpeedBase + (Math.random() - 0.5) * 4;
+
+      // Energy variance
+      const energy_variance = energy_consumption * (0.12 + Math.random() * 0.08);
+
+      // Zone area estimation
+      const zone_area = isIndustrial ? 40 : isIT ? 50 : isCoastal ? 55 : 45;
+
       return {
         ...baseZone,
         temperature,
+        humidity: Math.round(humidity * 10) / 10,
         aqi,
         energy_consumption,
+        energy_variance,
         carbon_emission,
+        wind_speed: Math.round(wind_speed * 10) / 10,
+        zone_area,
         sustainability_score,
         trend_temperature,
         trend_aqi,
@@ -261,6 +286,7 @@ export function useChennaiEnvironmentStatus() {
   }, [useSupabase]);
 
   const refresh = () => {
+    setError(null);
     if (useSupabase) {
       fetchZones();
     } else {
@@ -268,5 +294,5 @@ export function useChennaiEnvironmentStatus() {
     }
   };
 
-  return { zones, loading, lastUpdated, isLive, refresh };
+  return { zones, loading, lastUpdated, isLive, error, refresh };
 }

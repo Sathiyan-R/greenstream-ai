@@ -1,9 +1,10 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { ZoneData } from "@/types/map";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, TrendingUp, TrendingDown, Minus, Sparkles, Calendar } from "lucide-react";
+import { X, TrendingUp, TrendingDown, Minus, Sparkles, Calendar, MapPin } from "lucide-react";
 import { getSustainabilityColor } from "@/lib/mapColors";
 
 interface AnimatedZonePopupProps {
@@ -35,6 +36,19 @@ const getTrendColor = (trend: string) => {
 
 export const AnimatedZonePopup = ({ zone, onClose }: AnimatedZonePopupProps) => {
   const sustainabilityColor = getSustainabilityColor(zone.sustainability_score);
+
+  // ESC key to close popup
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   return (
     <motion.div
@@ -221,17 +235,28 @@ export const AnimatedZonePopup = ({ zone, onClose }: AnimatedZonePopupProps) => 
             </div>
           </motion.div>
 
-          {/* Carbon Emission */}
+          {/* Carbon Emission & Location */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.45 }}
-            className="mt-4 pt-4 border-t border-gray-700 flex items-center justify-between"
+            className="mt-4 pt-4 border-t border-gray-700 space-y-3"
           >
-            <span className="text-xs text-gray-400">Carbon Emission</span>
-            <span className="text-sm font-semibold text-gray-300">
-              {Math.round(zone.carbon_emission)} kg CO₂
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">Carbon Emission</span>
+              <span className="text-sm font-semibold text-gray-300">
+                {Math.round(zone.carbon_emission)} kg CO₂
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="text-xs text-gray-400">Location</span>
+              </div>
+              <span className="text-sm font-semibold text-gray-300">
+                {zone.zone_name}
+              </span>
+            </div>
           </motion.div>
         </Card>
       </motion.div>
