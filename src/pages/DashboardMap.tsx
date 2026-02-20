@@ -5,13 +5,17 @@ import { jsPDF } from "jspdf";
 import { MapMode, ZoneData } from "@/types/map";
 import { useChennaiEnvironmentStatus } from "@/hooks/useChennaiEnvironmentStatus";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useToast } from "@/hooks/use-toast";
 import { EnvironmentalMap } from "@/components/map/EnvironmentalMap";
 import { MapControls } from "@/components/map/MapControls";
 import { FloatingLegend } from "@/components/map/FloatingLegend";
 import { AnimatedZonePopup } from "@/components/map/AnimatedZonePopup";
 import { AlertDNAPanel } from "@/components/map/AlertDNAPanel";
+import { ZoneBattleImpactChart } from "@/components/map/ZoneBattleImpactChart";
+import { CarbonUtilizationPanel } from "@/components/carbon/CarbonUtilizationPanel";
 import { MapSkeleton } from "@/components/map/MapSkeleton";
 import { MapError } from "@/components/map/MapError";
+import { generateCarbonRecommendation } from "@/lib/carbonEngine";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,21 +34,28 @@ import {
   Users,
   Swords,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles,
+  AlertCircle,
+  CheckCircle
 } from "lucide-react";
 
 const DashboardMap = () => {
   const { zones, loading, lastUpdated, isLive, refresh, error } = useChennaiEnvironmentStatus();
+  const { toast } = useToast();
   const [mode, setMode] = useState<MapMode>("sustainability");
   const [selectedZone, setSelectedZone] = useState<ZoneData | null>(null);
   const [selectedAlertZone, setSelectedAlertZone] = useState<ZoneData | null>(null);
   const [isDNAPanelOpen, setIsDNAPanelOpen] = useState(false);
+  const [isCarbonPanelOpen, setIsCarbonPanelOpen] = useState(false);
+  const [carbonRecommendation, setCarbonRecommendation] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
   const [simTrees, setSimTrees] = useLocalStorage('greenstream_sim_trees', 2500);
   const [simEfficiency, setSimEfficiency] = useLocalStorage('greenstream_sim_efficiency', 12);
   const [simTraffic, setSimTraffic] = useLocalStorage('greenstream_sim_traffic', 8);
   const [credits, setCredits] = useLocalStorage('greenstream_credits', 1280);
-  const [creditDelta, setCreditDelta] = useState(120);
+  const [creditDelta, setCreditDelta] = useState(0);
   const [compareCityA, setCompareCityA] = useLocalStorage('greenstream_city_a', "Chennai");
   const [compareCityB, setCompareCityB] = useLocalStorage('greenstream_city_b', "Bengaluru");
   const [battleZone1Id, setBattleZone1Id] = useLocalStorage('greenstream_battle_zone1', "");
@@ -57,6 +68,22 @@ const DashboardMap = () => {
   const [zone2Traffic, setZone2Traffic] = useLocalStorage('greenstream_z2_traffic', 5);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage('greenstream_sidebar_collapsed', false);
 
+  // Validation function for Zone Battle inputs
+  const validateBattleInput = (fieldName: string, value: number, max: number): string => {
+    if (value < 0) return "Value cannot be negative";
+    if (value > max) return `Value cannot exceed ${max}`;
+    return "";
+  };
+
+  const handleZoneInputChange = (fieldName: string, value: number, max: number, setter: (val: number) => void) => {
+    setter(value);
+    const error = validateBattleInput(fieldName, value, max);
+    setValidationErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
+  };
+
   // Filter zones based on search query
   const filteredZones = useMemo(() => {
     if (!searchQuery.trim()) return zones;
@@ -68,18 +95,98 @@ const DashboardMap = () => {
     );
   }, [zones, searchQuery]);
 
-  // Export zone data as JSON
+  // Export zone data as PDF
   const handleExportData = () => {
-    const dataStr = JSON.stringify(filteredZones, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `chennai-environmental-data-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let yPos = 20;
+
+    // Title
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("Chennai Environmental Status Report", pageWidth / 2, yPos, { align: "center" });
+    yPos += 10;
+
+    // Date and Time
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, yPos, { align: "center" });
+    yPos += 15;
+
+    // Summary Statistics
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Summary Statistics", 15, yPos);
+    yPos += 8;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Average Sustainability Score: ${stats.avgSustainability}/100`, 15, yPos);
+    yPos += 6;
+    doc.text(`Average Temperature: ${stats.avgTemperature.toFixed(1)}°C`, 15, yPos);
+    yPos += 6;
+    doc.text(`Average AQI: ${stats.avgAQI}`, 15, yPos);
+    yPos += 6;
+    doc.text(`Total Energy Consumption: ${stats.totalEnergy} kWh`, 15, yPos);
+    yPos += 6;
+    doc.text(`Total Carbon Emissions: ${Math.round(totalCarbon)} kg CO₂`, 15, yPos);
+    yPos += 6;
+    doc.text(`Total Zones: ${filteredZones.length}`, 15, yPos);
+    yPos += 12;
+
+    // Zone Details
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Zone Details", 15, yPos);
+    yPos += 8;
+
+    filteredZones.forEach((zone, index) => {
+      // Check if we need a new page
+      if (yPos > pageHeight - 40) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${index + 1}. ${zone.zone_name}`, 15, yPos);
+      yPos += 6;
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Region: ${zone.zone_region}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Sustainability Score: ${zone.sustainability_score}/100`, 20, yPos);
+      yPos += 5;
+      doc.text(`Temperature: ${zone.temperature.toFixed(1)}°C`, 20, yPos);
+      yPos += 5;
+      doc.text(`AQI: ${zone.aqi}`, 20, yPos);
+      yPos += 5;
+      doc.text(`Energy Consumption: ${zone.energy_consumption} kWh`, 20, yPos);
+      yPos += 5;
+      doc.text(`Carbon Emission: ${zone.carbon_emission} kg CO₂`, 20, yPos);
+      yPos += 5;
+      if (zone.humidity !== undefined) {
+        doc.text(`Humidity: ${zone.humidity}%`, 20, yPos);
+        yPos += 5;
+      }
+      if (zone.wind_speed !== undefined) {
+        doc.text(`Wind Speed: ${zone.wind_speed} km/h`, 20, yPos);
+        yPos += 5;
+      }
+      yPos += 3;
+    });
+
+    // Save PDF
+    doc.save(`chennai-environmental-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    // Show success toast
+    toast({
+      title: "Export Successful! ✅",
+      description: "Your environmental report has been downloaded.",
+      duration: 3000,
+    });
   };
 
   const handleZoneClick = (zone: ZoneData) => {
@@ -94,6 +201,23 @@ const DashboardMap = () => {
   const handleCloseDNAPanel = () => {
     setIsDNAPanelOpen(false);
     setSelectedAlertZone(null);
+  };
+
+  const handleZoneClickForCarbon = (zone: ZoneData) => {
+    const recommendation = generateCarbonRecommendation(
+      zone.id,
+      zone.zone_name,
+      zone.carbon_emission,
+      zone.energy_consumption,
+      zone.sustainability_score
+    );
+    setCarbonRecommendation(recommendation);
+    setIsCarbonPanelOpen(true);
+  };
+
+  const handleCloseCarbonPanel = () => {
+    setIsCarbonPanelOpen(false);
+    setCarbonRecommendation(null);
   };
 
   const handleCloseZonePopup = () => {
@@ -328,6 +452,13 @@ const DashboardMap = () => {
 
     // Save PDF
     doc.save(`zone-battle-${zoneBattle.zone1.zone_name}-vs-${zoneBattle.zone2.zone_name}-${new Date().toISOString().split('T')[0]}.pdf`);
+    
+    // Show success toast
+    toast({
+      title: "Battle Report Exported! ✅",
+      description: `${zoneBattle.zone1.zone_name} vs ${zoneBattle.zone2.zone_name} comparison downloaded.`,
+      duration: 3000,
+    });
   };
 
   // Zone Battle Calculation
@@ -801,9 +932,10 @@ const DashboardMap = () => {
                   <Input
                     type="number"
                     min={1}
-                    value={creditDelta}
-                    onChange={(e) => setCreditDelta(Number(e.target.value))}
-                    className="h-8 bg-gray-900/70 border-gray-700 text-gray-200 text-xs"
+                    value={creditDelta === 0 ? '' : creditDelta}
+                    onChange={(e) => setCreditDelta(Number(e.target.value) || 0)}
+                    placeholder="0"
+                    className="h-8 bg-gray-900/70 border-gray-700 text-gray-200 text-xs placeholder:text-gray-500"
                   />
                   <Button
                     size="sm"
@@ -882,102 +1014,138 @@ const DashboardMap = () => {
                 <>
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     {/* Zone 1 Inputs */}
-                    <div className="space-y-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                      <p className="text-[10px] font-semibold text-blue-200">{zoneBattle.zone1.zone_name}</p>
+                    <div className="space-y-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <p className="text-xs font-semibold text-blue-200 mb-2">{zoneBattle.zone1.zone_name}</p>
+                      
                       <div>
-                        <div className="flex justify-between text-[9px] text-gray-400 mb-1">
-                          <span>Trees</span>
-                          <span>{zone1Trees}</span>
-                        </div>
-                        <input
-                          type="range"
+                        <label className="text-[10px] text-gray-400 mb-1 block">Trees</label>
+                        <Input
+                          type="number"
                           min={0}
                           max={5000}
-                          step={100}
-                          value={zone1Trees}
-                          onChange={(e) => setZone1Trees(Number(e.target.value))}
-                          className="w-full accent-blue-500"
+                          value={zone1Trees === 0 ? '' : zone1Trees}
+                          onChange={(e) => handleZoneInputChange('zone1Trees', Number(e.target.value) || 0, 5000, setZone1Trees)}
+                          placeholder="0"
+                          className={`w-full bg-gray-900/70 ${validationErrors['zone1Trees'] ? 'border-red-500/50' : 'border-blue-500/30'} text-blue-100 h-7 text-xs placeholder:text-gray-500`}
                         />
+                        {validationErrors['zone1Trees'] && (
+                          <p className="text-[9px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {validationErrors['zone1Trees']}
+                          </p>
+                        )}
                       </div>
+                      
                       <div>
-                        <div className="flex justify-between text-[9px] text-gray-400 mb-1">
-                          <span>Efficiency</span>
-                          <span>{zone1Efficiency}%</span>
+                        <label className="text-[10px] text-gray-400 mb-1 block">Efficiency</label>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={zone1Efficiency === 0 ? '' : zone1Efficiency}
+                            onChange={(e) => handleZoneInputChange('zone1Efficiency', Number(e.target.value) || 0, 100, setZone1Efficiency)}
+                            placeholder="0"
+                            className={`w-full bg-gray-900/70 ${validationErrors['zone1Efficiency'] ? 'border-red-500/50' : 'border-blue-500/30'} text-blue-100 h-7 text-xs placeholder:text-gray-500`}
+                          />
+                          <span className="text-[10px] text-gray-400">%</span>
                         </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={30}
-                          step={1}
-                          value={zone1Efficiency}
-                          onChange={(e) => setZone1Efficiency(Number(e.target.value))}
-                          className="w-full accent-blue-500"
-                        />
+                        {validationErrors['zone1Efficiency'] && (
+                          <p className="text-[9px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {validationErrors['zone1Efficiency']}
+                          </p>
+                        )}
                       </div>
+                      
                       <div>
-                        <div className="flex justify-between text-[9px] text-gray-400 mb-1">
-                          <span>Traffic ↓</span>
-                          <span>{zone1Traffic}%</span>
+                        <label className="text-[10px] text-gray-400 mb-1 block">Traffic ↓</label>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={zone1Traffic === 0 ? '' : zone1Traffic}
+                            onChange={(e) => handleZoneInputChange('zone1Traffic', Number(e.target.value) || 0, 100, setZone1Traffic)}
+                            placeholder="0"
+                            className={`w-full bg-gray-900/70 ${validationErrors['zone1Traffic'] ? 'border-red-500/50' : 'border-blue-500/30'} text-blue-100 h-7 text-xs placeholder:text-gray-500`}
+                          />
+                          <span className="text-[10px] text-gray-400">%</span>
                         </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={30}
-                          step={1}
-                          value={zone1Traffic}
-                          onChange={(e) => setZone1Traffic(Number(e.target.value))}
-                          className="w-full accent-blue-500"
-                        />
+                        {validationErrors['zone1Traffic'] && (
+                          <p className="text-[9px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {validationErrors['zone1Traffic']}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     {/* Zone 2 Inputs */}
-                    <div className="space-y-2 p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                      <p className="text-[10px] font-semibold text-purple-200">{zoneBattle.zone2.zone_name}</p>
+                    <div className="space-y-2 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                      <p className="text-xs font-semibold text-purple-200 mb-2">{zoneBattle.zone2.zone_name}</p>
+                      
                       <div>
-                        <div className="flex justify-between text-[9px] text-gray-400 mb-1">
-                          <span>Trees</span>
-                          <span>{zone2Trees}</span>
-                        </div>
-                        <input
-                          type="range"
+                        <label className="text-[10px] text-gray-400 mb-1 block">Trees</label>
+                        <Input
+                          type="number"
                           min={0}
                           max={5000}
-                          step={100}
-                          value={zone2Trees}
-                          onChange={(e) => setZone2Trees(Number(e.target.value))}
-                          className="w-full accent-purple-500"
+                          value={zone2Trees === 0 ? '' : zone2Trees}
+                          onChange={(e) => handleZoneInputChange('zone2Trees', Number(e.target.value) || 0, 5000, setZone2Trees)}
+                          placeholder="0"
+                          className={`w-full bg-gray-900/70 ${validationErrors['zone2Trees'] ? 'border-red-500/50' : 'border-purple-500/30'} text-purple-100 h-7 text-xs placeholder:text-gray-500`}
                         />
+                        {validationErrors['zone2Trees'] && (
+                          <p className="text-[9px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {validationErrors['zone2Trees']}
+                          </p>
+                        )}
                       </div>
+                      
                       <div>
-                        <div className="flex justify-between text-[9px] text-gray-400 mb-1">
-                          <span>Efficiency</span>
-                          <span>{zone2Efficiency}%</span>
+                        <label className="text-[10px] text-gray-400 mb-1 block">Efficiency</label>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={zone2Efficiency === 0 ? '' : zone2Efficiency}
+                            onChange={(e) => handleZoneInputChange('zone2Efficiency', Number(e.target.value) || 0, 100, setZone2Efficiency)}
+                            placeholder="0"
+                            className={`w-full bg-gray-900/70 ${validationErrors['zone2Efficiency'] ? 'border-red-500/50' : 'border-purple-500/30'} text-purple-100 h-7 text-xs placeholder:text-gray-500`}
+                          />
+                          <span className="text-[10px] text-gray-400">%</span>
                         </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={30}
-                          step={1}
-                          value={zone2Efficiency}
-                          onChange={(e) => setZone2Efficiency(Number(e.target.value))}
-                          className="w-full accent-purple-500"
-                        />
+                        {validationErrors['zone2Efficiency'] && (
+                          <p className="text-[9px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {validationErrors['zone2Efficiency']}
+                          </p>
+                        )}
                       </div>
+                      
                       <div>
-                        <div className="flex justify-between text-[9px] text-gray-400 mb-1">
-                          <span>Traffic ↓</span>
-                          <span>{zone2Traffic}%</span>
+                        <label className="text-[10px] text-gray-400 mb-1 block">Traffic ↓</label>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={zone2Traffic === 0 ? '' : zone2Traffic}
+                            onChange={(e) => handleZoneInputChange('zone2Traffic', Number(e.target.value) || 0, 100, setZone2Traffic)}
+                            placeholder="0"
+                            className={`w-full bg-gray-900/70 ${validationErrors['zone2Traffic'] ? 'border-red-500/50' : 'border-purple-500/30'} text-purple-100 h-7 text-xs placeholder:text-gray-500`}
+                          />
+                          <span className="text-[10px] text-gray-400">%</span>
                         </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={30}
-                          step={1}
-                          value={zone2Traffic}
-                          onChange={(e) => setZone2Traffic(Number(e.target.value))}
-                          className="w-full accent-purple-500"
-                        />
+                        {validationErrors['zone2Traffic'] && (
+                          <p className="text-[9px] text-red-400 flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {validationErrors['zone2Traffic']}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1007,21 +1175,89 @@ const DashboardMap = () => {
                     ))}
                   </div>
 
-                  {/* Winner */}
-                  <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30">
-                    <div className="flex items-center justify-center gap-2">
-                      <Trophy className="w-4 h-4 text-yellow-300" />
-                      <p className="text-sm font-bold text-yellow-200">
-                        {zoneBattle.winner === 'tie' 
-                          ? "It's a Tie!" 
-                          : `Winner: ${zoneBattle.winner === 'zone1' ? zoneBattle.zone1.zone_name : zoneBattle.zone2.zone_name}`}
-                      </p>
-                    </div>
-                    <p className="text-center text-[10px] text-gray-300 mt-1">
-                      Score: {zoneBattle.winner === 'zone1' 
-                        ? zoneBattle.zone1Results.totalScore.toFixed(1) 
-                        : zoneBattle.zone2Results.totalScore.toFixed(1)}% improvement
-                    </p>
+                  {/* Winner - Animated Display */}
+                  <AnimatePresence>
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                      className="mt-4 p-4 rounded-lg bg-gradient-to-r from-yellow-500/30 to-orange-500/30 border-2 border-yellow-400/50 overflow-hidden relative"
+                    >
+                      {/* Animated background sparkles */}
+                      <div className="absolute inset-0 opacity-50">
+                        <motion.div
+                          animate={{ opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="absolute top-2 right-4"
+                        >
+                          <Sparkles className="w-4 h-4 text-yellow-300" />
+                        </motion.div>
+                        <motion.div
+                          animate={{ opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                          className="absolute bottom-2 left-4"
+                        >
+                          <Sparkles className="w-4 h-4 text-yellow-300" />
+                        </motion.div>
+                      </div>
+
+                      {/* Winner Content */}
+                      <div className="relative z-10">
+                        <motion.div
+                          animate={{ y: [-2, 2, -2] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="flex items-center justify-center gap-2 mb-2"
+                        >
+                          <motion.div
+                            animate={{ rotate: [0, 10, -10, 0] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            <Trophy className="w-5 h-5 text-yellow-300" />
+                          </motion.div>
+                          <p className="text-sm font-bold text-yellow-100">
+                            {zoneBattle.winner === 'tie' 
+                              ? "🎯 It's a Perfect Tie!" 
+                              : `🏆 ${zoneBattle.winner === 'zone1' ? zoneBattle.zone1.zone_name : zoneBattle.zone2.zone_name} Wins!`}
+                          </p>
+                          <motion.div
+                            animate={{ rotate: [0, -10, 10, 0] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            <Trophy className="w-5 h-5 text-yellow-300" />
+                          </motion.div>
+                        </motion.div>
+                        <motion.p
+                          animate={{ scale: [1, 1.05, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                          className="text-center text-[11px] text-yellow-100 font-semibold"
+                        >
+                          Score: {Math.max(zoneBattle.zone1Results.totalScore, zoneBattle.zone2Results.totalScore).toFixed(1)}% improvement
+                        </motion.p>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Real-Time Impact Visualization */}
+                  <div className="mt-4">
+                    <ZoneBattleImpactChart
+                      zone1Name={zoneBattle.zone1.zone_name}
+                      zone1BaseTemp={zoneBattle.zone1.temperature}
+                      zone1BaseAQI={zoneBattle.zone1.aqi}
+                      zone1BaseEnergy={zoneBattle.zone1.energy_consumption}
+                      zone1BaseCarbon={zoneBattle.zone1.carbon_emission}
+                      zone1Trees={zone1Trees}
+                      zone1Efficiency={zone1Efficiency}
+                      zone1Traffic={zone1Traffic}
+                      
+                      zone2Name={zoneBattle.zone2.zone_name}
+                      zone2BaseTemp={zoneBattle.zone2.temperature}
+                      zone2BaseAQI={zoneBattle.zone2.aqi}
+                      zone2BaseEnergy={zoneBattle.zone2.energy_consumption}
+                      zone2BaseCarbon={zoneBattle.zone2.carbon_emission}
+                      zone2Trees={zone2Trees}
+                      zone2Efficiency={zone2Efficiency}
+                      zone2Traffic={zone2Traffic}
+                    />
                   </div>
 
                   {/* Export Button */}
@@ -1089,6 +1325,7 @@ const DashboardMap = () => {
           <AnimatedZonePopup
             zone={selectedZone}
             onClose={handleCloseZonePopup}
+            onCarbonAnalysis={handleZoneClickForCarbon}
           />
         )}
       </AnimatePresence>
@@ -1099,6 +1336,16 @@ const DashboardMap = () => {
         isOpen={isDNAPanelOpen}
         onClose={handleCloseDNAPanel}
       />
+
+      {/* Carbon Utilization Panel */}
+      <AnimatePresence>
+        {isCarbonPanelOpen && carbonRecommendation && (
+          <CarbonUtilizationPanel
+            recommendation={carbonRecommendation}
+            onClose={handleCloseCarbonPanel}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Footer */}
       <footer className="mt-auto py-4 border-t border-gray-800">

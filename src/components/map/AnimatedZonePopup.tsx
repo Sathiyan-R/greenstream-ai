@@ -4,12 +4,13 @@ import { ZoneData } from "@/types/map";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, TrendingUp, TrendingDown, Minus, Sparkles, Calendar, MapPin } from "lucide-react";
+import { X, TrendingUp, TrendingDown, Minus, Sparkles, Calendar, MapPin, Zap } from "lucide-react";
 import { getSustainabilityColor } from "@/lib/mapColors";
 
 interface AnimatedZonePopupProps {
   zone: ZoneData;
   onClose: () => void;
+  onCarbonAnalysis?: (zone: ZoneData) => void;
 }
 
 const getTrendIcon = (trend: string) => {
@@ -34,7 +35,7 @@ const getTrendColor = (trend: string) => {
   }
 };
 
-export const AnimatedZonePopup = ({ zone, onClose }: AnimatedZonePopupProps) => {
+export const AnimatedZonePopup = ({ zone, onClose, onCarbonAnalysis }: AnimatedZonePopupProps) => {
   const sustainabilityColor = getSustainabilityColor(zone.sustainability_score);
 
   // ESC key to close popup
@@ -258,6 +259,25 @@ export const AnimatedZonePopup = ({ zone, onClose }: AnimatedZonePopupProps) => 
               </span>
             </div>
           </motion.div>
+
+          {/* Carbon Analysis Button */}
+          {onCarbonAnalysis && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-4 pt-4 border-t border-gray-700"
+            >
+              <Button
+                onClick={() => onCarbonAnalysis(zone)}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white gap-2"
+                size="sm"
+              >
+                <Zap className="w-4 h-4" />
+                Carbon Intelligence
+              </Button>
+            </motion.div>
+          )}
         </Card>
       </motion.div>
     </motion.div>
