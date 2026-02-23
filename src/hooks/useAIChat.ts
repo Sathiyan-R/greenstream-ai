@@ -28,6 +28,13 @@ export function useAIChat(dashboardState: DashboardState) {
     };
 
     try {
+      // Check if environment variables are configured
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
+        upsert("AI Assistant is not configured. Please set up environment variables in Netlify.");
+        setIsLoading(false);
+        return;
+      }
+
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {

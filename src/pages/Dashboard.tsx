@@ -80,10 +80,11 @@ const LiveDashboard = () => {
           </div>
           <Link 
             to="/dashboard/map" 
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium hover:shadow-lg transition-all duration-300"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-medium hover:shadow-lg transition-all duration-300"
           >
             <MapPin className="w-3.5 h-3.5" />
-            Environmental Map
+            <span className="hidden sm:inline">Environmental Map</span>
+            <span className="sm:hidden">Map</span>
           </Link>
           <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-primary/10">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
