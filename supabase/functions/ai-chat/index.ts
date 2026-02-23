@@ -10,8 +10,8 @@ serve(async (req) => {
 
   try {
     const { messages, dashboardContext } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GREENSTREAM_API_KEY = Deno.env.get("GREENSTREAM_API_KEY");
+    if (!GREENSTREAM_API_KEY) throw new Error("GREENSTREAM_API_KEY is not configured");
 
     const systemPrompt = `You are GreenStream AI Assistant.
 You analyze real-time environmental and energy data.
@@ -35,10 +35,10 @@ Your role:
 
 Format responses with bullet points and bold key metrics.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.greenstream.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GREENSTREAM_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
