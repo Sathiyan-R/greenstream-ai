@@ -29,7 +29,6 @@ import {
   RefreshCw,
   Search,
   Download,
-  Leaf,
   Trophy,
   Users,
   Swords,
@@ -810,14 +809,9 @@ const DashboardMap = () => {
 
             {/* What-If Simulator */}
             <Card className="p-4 bg-gradient-to-br from-slate-950/70 to-emerald-950/40 border-emerald-500/30">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 bg-emerald-500/20 rounded-lg">
-                  <Leaf className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-white text-sm mb-1">What-If Simulator</h3>
-                  <p className="text-xs text-gray-300">Model the impact of green interventions.</p>
-                </div>
+              <div className="flex-1 mb-4">
+                <h3 className="font-semibold text-white text-sm mb-1">What-If Simulator</h3>
+                <p className="text-xs text-gray-300">Model the impact of green interventions.</p>
               </div>
 
               <div className="space-y-3">

@@ -66,7 +66,6 @@ const LiveDashboard = () => {
       <header className="border-b border-border px-6 py-3 flex items-center justify-between sticky top-0 z-50 bg-background/80 backdrop-blur-xl">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2">
-            <Leaf className="w-5 h-5 text-primary" />
             <span className="font-heading font-bold text-lg">GreenStream AI</span>
           </Link>
           <span className="text-xs text-muted-foreground hidden sm:block">Real-Time Control Tower</span>
