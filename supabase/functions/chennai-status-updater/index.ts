@@ -20,31 +20,28 @@ interface ZoneData {
   ai_suggestion: string;
 }
 
-// Calculate trends based on current vs previous values
 function calculateTrend(current: number, previous: number): string {
   const diff = current - previous;
-  const threshold = Math.abs(previous) * 0.05; // 5% threshold
+  const threshold = Math.abs(previous) * 0.05; 
   
   if (Math.abs(diff) < threshold) return "→";
   return diff > 0 ? "↑" : "↓";
 }
 
-// Calculate sustainability score
 function calculateSustainabilityScore(
   aqi: number,
   energy: number,
   carbon: number,
   temperature: number
 ): number {
-  // Weighted formula
-  const aqiScore = Math.max(0, 100 - (aqi / 2)); // AQI weight: 50%
-  const energyScore = Math.max(0, 100 - (energy / 30)); // Energy weight: 30%
-  const tempScore = Math.max(0, 100 - (temperature - 25) * 5); // Temp weight: 20%
+  
+  const aqiScore = Math.max(0, 100 - (aqi / 2)); 
+  const energyScore = Math.max(0, 100 - (energy / 30)); 
+  const tempScore = Math.max(0, 100 - (temperature - 25) * 5); 
   
   return Math.round((aqiScore * 0.5) + (energyScore * 0.3) + (tempScore * 0.2));
 }
 
-// Generate AI suggestions based on zone metrics
 function generateAISuggestion(zone: ZoneData): string {
   const suggestions: string[] = [];
   
@@ -71,7 +68,6 @@ function generateAISuggestion(zone: ZoneData): string {
   return suggestions.join(". ");
 }
 
-// Generate prediction for tomorrow
 function generatePrediction(zone: ZoneData): string {
   const predictions: string[] = [];
   
@@ -97,13 +93,13 @@ function generatePrediction(zone: ZoneData): string {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
+  
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Create Supabase client
+    
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -115,13 +111,11 @@ serve(async (req) => {
       }
     );
 
-    // Fetch current data to calculate trends
     const { data: currentData } = await supabaseAdmin
       .from("chennai_environment_status")
       .select("*")
       .order("zone_name");
 
-    // Fetch Chennai weather from OpenWeather API
     const weatherApiKey = Deno.env.get("OPENWEATHER_API_KEY");
     let baseTemperature = 32;
     
@@ -139,7 +133,6 @@ serve(async (req) => {
       }
     }
 
-    // Fetch Chennai AQI from IQAir API
     const iqAirApiKey = Deno.env.get("IQAIR_API_KEY");
     let baseAqi = 120;
     
@@ -157,7 +150,6 @@ serve(async (req) => {
       }
     }
 
-    // Define zone-specific multipliers
     const zones = [
       {
         zone_name: "North Chennai",
@@ -191,14 +183,12 @@ serve(async (req) => {
       },
     ];
 
-    // Update each zone
     const updates = await Promise.all(
       zones.map(async (zoneConfig) => {
         const previousZone = currentData?.find(
           (z) => z.zone_name === zoneConfig.zone_name
         );
 
-        // Add realistic variation
         const variation = (Math.random() - 0.5) * 2;
         const temperature = parseFloat(
           (baseTemperature + zoneConfig.tempOffset + variation).toFixed(2)
@@ -215,7 +205,6 @@ serve(async (req) => {
           temperature
         );
 
-        // Calculate trends
         const trend_temperature = previousZone
           ? calculateTrend(temperature, previousZone.temperature)
           : "→";
@@ -240,11 +229,9 @@ serve(async (req) => {
           ai_suggestion: "",
         };
 
-        // Generate prediction and AI suggestion
         zoneData.prediction_tomorrow = generatePrediction(zoneData);
         zoneData.ai_suggestion = generateAISuggestion(zoneData);
 
-        // Update in database
         const { error } = await supabaseAdmin
           .from("chennai_environment_status")
           .update(zoneData)

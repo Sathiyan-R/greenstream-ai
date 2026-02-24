@@ -1,4 +1,4 @@
-// Map-related type definitions
+
 
 export type MapMode = "temperature" | "aqi" | "energy" | "sustainability";
 
@@ -23,7 +23,7 @@ export interface ZoneData {
   last_updated: string;
   wind_speed?: number;
   zone_area?: number;
-  // Legacy fields for compatibility
+  
   name?: string;
   lat?: number;
   lng?: number;

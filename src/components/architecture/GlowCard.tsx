@@ -35,23 +35,4 @@ export const GlowCard: React.FC<GlowCardProps> = ({
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Glow background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${glowColor[variant]} rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-
-      {/* Card */}
-      <div
-        className={`
-          relative backdrop-blur-md bg-white/5 border rounded-xl p-6
-          transition-all duration-300 h-full
-          ${borderColor[variant]}
-          ${isExpanded ? "ring-1 ring-green-400/50" : ""}
-          ${className}
-        `}
-      >
-        {children}
-      </div>
-    </motion.div>
-  );
-};
-
-export default GlowCard;
+      {

@@ -34,21 +34,18 @@ export function useDashboardData() {
 
     const promises: Promise<void>[] = [];
 
-    // Weather
     promises.push(
       fetchWeather("Chennai")
         .then((weather) => { setState((s) => ({ ...s, weather })); newStatus.weather = true; })
         .catch((e) => console.error("Weather fetch failed:", e))
     );
 
-    // Air quality
     promises.push(
       fetchAirQuality("Chennai", "Tamil Nadu", "India")
         .then((airQuality) => { setState((s) => ({ ...s, airQuality })); newStatus.airQuality = true; })
         .catch((e) => console.error("Air quality fetch failed:", e))
     );
 
-    // Forecast
     promises.push(
       fetchForecast("Chennai")
         .then((forecast) => { setState((s) => ({ ...s, forecast })); newStatus.forecast = true; })
@@ -68,7 +65,6 @@ export function useDashboardData() {
     const totalUsage = readings.reduce((s, r) => s + r.energyUsage, 0);
     const totalSolar = readings.reduce((s, r) => s + r.solarProduction, 0);
 
-    // Rolling 5-minute average (60 readings at 5s intervals)
     usageHistory.current.push(totalUsage);
     if (usageHistory.current.length > 60) usageHistory.current.shift();
     const rollingAvgUsage = usageHistory.current.reduce((a, b) => a + b, 0) / usageHistory.current.length;

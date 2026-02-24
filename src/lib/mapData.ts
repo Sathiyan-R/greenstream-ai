@@ -1,7 +1,6 @@
 import { ZoneData, AIInsight } from "@/types/map";
 import { WeatherData, AirQualityData, EnergyReading, CarbonData } from "@/lib/api";
 
-// Chennai zones base data with coordinates and areas
 const chennaiZonesBase: ZoneData[] = [
   {
     id: "zone-1",
@@ -341,10 +340,8 @@ const chennaiZonesBase: ZoneData[] = [
   },
 ];
 
-// Export static zones for fallback
 export const chennaiZones = chennaiZonesBase;
 
-// Update zones with real-time API data
 export const updateZonesWithLiveData = (
   weather: WeatherData | null,
   airQuality: AirQualityData | null,
@@ -353,22 +350,19 @@ export const updateZonesWithLiveData = (
 ): ZoneData[] => {
   const totalEnergy = energyReadings.reduce((sum, r) => sum + r.energyUsage, 0);
   const totalCarbon = carbonData?.totalEmissions || 0;
-  
-  // Add some variation to distribute data across zones
+
   return chennaiZonesBase.map((zone, index) => {
-    // Use base temperature from zone, but adjust with API data if available
+    
     const baseTemp = zone.temperature;
     const apiTemp = weather?.temperature || baseTemp;
-    const variation = (index % 3 - 1) * 2; // -2, 0, or +2 degrees variation
+    const variation = (index % 3 - 1) * 2; 
     const temperature = Math.round(apiTemp + variation);
-    
-    // Use API AQI with zone-specific variation
+
     const baseAqi = zone.aqi;
     const apiAqi = airQuality?.aqi || baseAqi;
-    const aqiVariation = (index % 5 - 2) * 15; // Variation between zones
+    const aqiVariation = (index % 5 - 2) * 15; 
     const aqi = Math.max(0, Math.round(apiAqi + aqiVariation));
-    
-    // Distribute total energy across zones based on area type
+
     const energyMultiplier = zone.area?.includes("Industrial") ? 1.3 :
                             zone.area?.includes("IT") ? 1.4 :
                             zone.area?.includes("Commercial") ? 1.2 :
@@ -376,8 +370,7 @@ export const updateZonesWithLiveData = (
     
     const zoneEnergy = energyReadings[index % energyReadings.length]?.energyUsage || zone.energy;
     const energy = Math.round(zoneEnergy * energyMultiplier);
-    
-    // Calculate carbon based on energy (0.82 kg CO2 per kWh)
+
     const carbon = Math.round(energy * 0.82);
     
     return {
@@ -390,28 +383,27 @@ export const updateZonesWithLiveData = (
   });
 };
 
-// Color mapping functions
 export const getTemperatureColor = (temp: number): string => {
-  if (temp >= 35) return "#ef4444"; // red-500
-  if (temp >= 33) return "#f97316"; // orange-500
-  if (temp >= 31) return "#f59e0b"; // amber-500
-  if (temp >= 29) return "#eab308"; // yellow-500
-  return "#22c55e"; // green-500
+  if (temp >= 35) return "#ef4444"; 
+  if (temp >= 33) return "#f97316"; 
+  if (temp >= 31) return "#f59e0b"; 
+  if (temp >= 29) return "#eab308"; 
+  return "#22c55e"; 
 };
 
 export const getAQIColor = (aqi: number): string => {
-  if (aqi >= 151) return "#7c3aed"; // violet-600 (Unhealthy)
-  if (aqi >= 101) return "#ef4444"; // red-500 (Unhealthy for Sensitive)
-  if (aqi >= 51) return "#f59e0b"; // amber-500 (Moderate)
-  return "#22c55e"; // green-500 (Good)
+  if (aqi >= 151) return "#7c3aed"; 
+  if (aqi >= 101) return "#ef4444"; 
+  if (aqi >= 51) return "#f59e0b"; 
+  return "#22c55e"; 
 };
 
 export const getEnergyColor = (energy: number): string => {
-  if (energy >= 1000) return "#dc2626"; // red-600
-  if (energy >= 750) return "#f97316"; // orange-500
-  if (energy >= 500) return "#eab308"; // yellow-500
-  if (energy >= 300) return "#84cc16"; // lime-500
-  return "#10b981"; // emerald-500
+  if (energy >= 1000) return "#dc2626"; 
+  if (energy >= 750) return "#f97316"; 
+  if (energy >= 500) return "#eab308"; 
+  if (energy >= 300) return "#84cc16"; 
+  return "#10b981"; 
 };
 
 export const getColorByMode = (mode: string, value: number): string => {
@@ -432,26 +424,24 @@ export const getCircleRadius = (mode: string, value: number): number => {
   
   switch (mode) {
     case "temperature":
-      normalized = Math.min((value - 25) / 15, 1); // 25-40°C range
+      normalized = Math.min((value - 25) / 15, 1); 
       break;
     case "aqi":
-      normalized = Math.min(value / 200, 1); // 0-200 AQI range
+      normalized = Math.min(value / 200, 1); 
       break;
     case "energy":
-      normalized = Math.min(value / 1500, 1); // 0-1500 kWh range
+      normalized = Math.min(value / 1500, 1); 
       break;
   }
   
-  return 800 + (normalized * 1200); // 800-2000 meter radius
+  return 800 + (normalized * 1200); 
 };
 
-// AI Insight Generator
 export const generateAIInsight = (zone: ZoneData): AIInsight => {
   const insights: string[] = [];
   const recommendations: string[] = [];
   let severity: "low" | "medium" | "high" = "low";
 
-  // Temperature Analysis
   if (zone.temperature >= 35) {
     insights.push(`Extreme heat in ${zone.name} (${zone.temperature}°C)`);
     recommendations.push("Increase cooling efficiency, consider energy-saving measures");
@@ -462,7 +452,6 @@ export const generateAIInsight = (zone: ZoneData): AIInsight => {
     if (severity === "low") severity = "medium";
   }
 
-  // AQI Analysis
   if (zone.aqi >= 151) {
     insights.push(`Unhealthy air quality (AQI: ${zone.aqi})`);
     recommendations.push("Avoid outdoor activities, use air purifiers");
@@ -473,7 +462,6 @@ export const generateAIInsight = (zone: ZoneData): AIInsight => {
     if (severity === "low") severity = "medium";
   }
 
-  // Energy Analysis
   if (zone.energy >= 1000) {
     insights.push(`Very high energy consumption (${zone.energy} kWh)`);
     recommendations.push("Peak load detected - review energy optimization strategies");
@@ -484,7 +472,6 @@ export const generateAIInsight = (zone: ZoneData): AIInsight => {
     if (severity === "low") severity = "medium";
   }
 
-  // Correlations
   if (zone.temperature >= 33 && zone.energy >= 700) {
     insights.push(`High energy usage correlates with temperature spike - likely increased AC demand`);
   }
@@ -497,7 +484,6 @@ export const generateAIInsight = (zone: ZoneData): AIInsight => {
     insights.push(`Sea breeze from Bay of Bengal helping maintain good air quality`);
   }
 
-  // Area-specific insights
   if (zone.name === "OMR (Thoraipakkam)") {
     insights.push(`IT corridor experiencing peak office hours demand`);
   }

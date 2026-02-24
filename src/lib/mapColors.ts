@@ -1,31 +1,31 @@
-// Real-time Chennai Map Color Logic
+
 
 export const getAQIColor = (aqi: number): string => {
-  if (aqi >= 151) return "#ef4444"; // Red
-  if (aqi >= 101) return "#f97316"; // Orange
-  if (aqi >= 51) return "#eab308"; // Yellow
-  return "#22c55e"; // Green
+  if (aqi >= 151) return "#ef4444"; 
+  if (aqi >= 101) return "#f97316"; 
+  if (aqi >= 51) return "#eab308"; 
+  return "#22c55e"; 
 };
 
 export const getEnergyColor = (energy: number): string => {
-  if (energy >= 2000) return "#ef4444"; // High - Red
-  if (energy >= 1200) return "#eab308"; // Medium - Yellow
-  return "#22c55e"; // Low - Green
+  if (energy >= 2000) return "#ef4444"; 
+  if (energy >= 1200) return "#eab308"; 
+  return "#22c55e"; 
 };
 
 export const getSustainabilityColor = (score: number): string => {
-  if (score >= 80) return "#10b981"; // Bright Green (80-100)
-  if (score >= 60) return "#84cc16"; // Light Green (60-79)
-  if (score >= 40) return "#f97316"; // Orange (40-59)
-  return "#ef4444"; // Red (Below 40)
+  if (score >= 80) return "#10b981"; 
+  if (score >= 60) return "#84cc16"; 
+  if (score >= 40) return "#f97316"; 
+  return "#ef4444"; 
 };
 
 export const getTemperatureColor = (temp: number): string => {
-  if (temp >= 35) return "#ef4444"; // red-500
-  if (temp >= 33) return "#f97316"; // orange-500
-  if (temp >= 31) return "#eab308"; // yellow-500
-  if (temp >= 29) return "#84cc16"; // lime-500
-  return "#22c55e"; // green-500
+  if (temp >= 35) return "#ef4444"; 
+  if (temp >= 33) return "#f97316"; 
+  if (temp >= 31) return "#eab308"; 
+  if (temp >= 29) return "#84cc16"; 
+  return "#22c55e"; 
 };
 
 export const getColorByMode = (
@@ -73,11 +73,11 @@ export const getCircleRadius = (
       normalized = Math.min(zone.energy_consumption / 3000, 1);
       break;
     case "sustainability":
-      normalized = 1 - zone.sustainability_score / 100; // Inverse: lower score = bigger circle
+      normalized = 1 - zone.sustainability_score / 100; 
       break;
   }
 
-  return 3000 + normalized * 5000; // 3000-8000 meter radius for better visibility
+  return 3000 + normalized * 5000; 
 };
 
 export const getLegendData = (

@@ -50,7 +50,7 @@ export interface PredictionData {
   factors: string[];
 }
 
-const EMISSION_FACTOR = 0.82; // kgCO2 per kWh
+const EMISSION_FACTOR = 0.82; 
 
 export async function fetchWeather(city = "Chennai"): Promise<WeatherData> {
   const { data, error } = await supabase.functions.invoke("weather", {
@@ -117,7 +117,6 @@ export function detectAnomalies(
 ): AnomalyAlert[] {
   const anomalies: AnomalyAlert[] = [];
 
-  // Energy spike > 20% above rolling average
   current.forEach((c) => {
     const prev = previous.find((p) => p.buildingId === c.buildingId);
     if (rollingAvgUsage > 0) {
@@ -143,7 +142,6 @@ export function detectAnomalies(
       }
     }
 
-    // Solar drop > 30%
     if (prev && prev.solarProduction > 0) {
       const solarDrop = ((prev.solarProduction - c.solarProduction) / prev.solarProduction) * 100;
       if (solarDrop > 30) {
@@ -157,7 +155,6 @@ export function detectAnomalies(
     }
   });
 
-  // AQI > 4 (on the 1-5 IQAir scale, or >150 US AQI)
   if (aqi > 150) {
     anomalies.push({
       buildingId: "Environment",
@@ -180,7 +177,7 @@ export function generatePrediction(
   let riskScore = 0;
 
   if (forecast) {
-    // Temperature impact
+    
     if (forecast.maxTemp > 32) {
       predictedEnergy *= 1.15;
       factors.push(`High temp (${forecast.maxTemp}°C) → +15% HVAC load`);
@@ -191,20 +188,17 @@ export function generatePrediction(
       riskScore += 1;
     }
 
-    // Cloud cover → solar impact
     if (forecast.clouds > 70) {
       factors.push(`High cloud cover (${forecast.clouds}%) → reduced solar`);
       riskScore += 1;
     }
 
-    // Wind impact on renewable
     if (forecast.windSpeed > 6) {
       factors.push(`Strong wind (${forecast.windSpeed}m/s) → good for wind energy`);
       riskScore -= 1;
     }
   }
 
-  // AQI impact
   if (aqi > 100) {
     factors.push(`Elevated AQI (${aqi}) → environmental risk`);
     riskScore += 2;

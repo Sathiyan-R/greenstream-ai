@@ -12,7 +12,6 @@ serve(async (req) => {
     const { city, state, country } = await req.json();
     const apiKey = Deno.env.get("AIRVISUAL_API_KEY");
 
-    // Try real API first
     if (apiKey) {
       try {
         const res = await fetch(
@@ -41,7 +40,6 @@ serve(async (req) => {
       }
     }
 
-    // Fallback: simulated air quality data
     const aqi = 30 + Math.floor(Math.random() * 80);
     const pollutants = ["p2", "p1", "o3", "n2", "s2", "co"];
     return new Response(JSON.stringify({

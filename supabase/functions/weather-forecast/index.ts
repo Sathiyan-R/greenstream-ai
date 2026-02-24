@@ -20,7 +20,7 @@ serve(async (req) => {
         const data = await res.json();
 
         if (data.cod === "200" && data.list) {
-          // Get tomorrow's forecasts (next 24-48h)
+          
           const now = Date.now();
           const tomorrow = now + 24 * 60 * 60 * 1000;
           const dayAfter = now + 48 * 60 * 60 * 1000;
@@ -60,7 +60,6 @@ serve(async (req) => {
       }
     }
 
-    // Fallback simulated forecast
     const baseTemp = 15 + Math.random() * 20;
     return new Response(JSON.stringify({
       city: city || "Chennai",
