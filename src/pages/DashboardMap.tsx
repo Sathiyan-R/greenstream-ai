@@ -570,20 +570,20 @@ const DashboardMap = () => {
       {/* Header */}
       <header className="bg-gray-900/50 backdrop-blur-md border-b border-gray-700 sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm" className="gap-2">
                   <ArrowLeft className="w-4 h-4" />
                   Back to Dashboard
                 </Button>
               </Link>
-              <div className="h-8 w-px bg-gray-700" />
+              <div className="hidden h-8 w-px bg-gray-700 sm:block" />
               <div>
                 <motion.h1
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-2xl font-bold text-white flex items-center gap-2"
+                  className="text-xl font-bold text-white flex items-center gap-2 sm:text-2xl"
                 >
                   <MapPin className="w-6 h-6 text-blue-500" />
                   Chennai Environmental Status
@@ -599,7 +599,7 @@ const DashboardMap = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 lg:w-auto lg:justify-end">
               <AnimatePresence>
                 {isLive && (
                   <motion.div
@@ -607,7 +607,7 @@ const DashboardMap = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
                   >
-                    <Badge className="gap-1 px-3 py-1 bg-green-500/20 text-green-400 border-green-500/50">
+                    <Badge className="w-full justify-center gap-1 px-3 py-1 bg-green-500/20 text-green-400 border-green-500/50 sm:w-auto">
                       <motion.div
                         animate={{ scale: [1, 1.2, 1] }}
                         transition={{ duration: 1, repeat: Infinity }}
@@ -619,7 +619,7 @@ const DashboardMap = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
-              <Badge variant="outline" className="gap-1 px-3 py-1">
+              <Badge variant="outline" className="w-full justify-center gap-1 px-3 py-1 sm:w-auto">
                 <MapPin className="w-3 h-3 text-blue-500" />
                 <span className="text-xs">{filteredZones.length} Zone{filteredZones.length !== 1 ? 's' : ''}</span>
               </Badge>
@@ -627,7 +627,7 @@ const DashboardMap = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleExportData}
-                className="gap-2"
+                className="w-full gap-2 sm:w-auto"
                 title="Export zone data as JSON"
               >
                 <Download className="w-4 h-4" />
@@ -637,7 +637,7 @@ const DashboardMap = () => {
                 variant="outline"
                 size="sm"
                 onClick={refresh}
-                className="gap-2"
+                className="w-full gap-2 sm:w-auto"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
