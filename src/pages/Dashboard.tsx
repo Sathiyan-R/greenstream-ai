@@ -8,7 +8,7 @@ import {
 import {
   AlertTriangle, RefreshCw, Cloud, Wind, Droplets, Thermometer,
   Leaf, Zap, Sun, Activity, CheckCircle2, XCircle, TrendingUp,
-  Brain, ShieldAlert, Calendar, MapPin,
+  Brain, ShieldAlert, Calendar, MapPin, Globe,
 } from "lucide-react";
 import DashboardAIChat from "@/components/dashboard/DashboardAIChat";
 import { Link } from "react-router-dom";
@@ -84,6 +84,14 @@ const LiveDashboard = () => {
             <MapPin className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Environmental Map</span>
             <span className="sm:hidden">Map</span>
+          </Link>
+          <Link 
+            to="/environmental-insights" 
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-medium hover:shadow-lg transition-all duration-300"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Environmental Insights</span>
+            <span className="sm:hidden">Insights</span>
           </Link>
           <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-primary/10">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />

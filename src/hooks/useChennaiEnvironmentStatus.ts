@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ZoneData } from "@/types/map";
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -78,6 +78,29 @@ export function useChennaiEnvironmentStatus() {
   
   // Fallback to live API data
   const { state: dashboardState } = useDashboardData();
+
+  const stats = useMemo(() => {
+    if (zones.length === 0) {
+      return {
+        avgTemperature: 0,
+        avgAQI: 0,
+        avgSustainability: 0,
+        totalEnergy: 0,
+      };
+    }
+
+    return {
+      avgTemperature: zones.reduce((sum, zone) => sum + zone.temperature, 0) / zones.length,
+      avgAQI: Math.round(zones.reduce((sum, zone) => sum + zone.aqi, 0) / zones.length),
+      avgSustainability: Math.round(zones.reduce((sum, zone) => sum + zone.sustainability_score, 0) / zones.length),
+      totalEnergy: Math.round(zones.reduce((sum, zone) => sum + zone.energy_consumption, 0)),
+    };
+  }, [zones]);
+
+  const totalCarbon = useMemo(
+    () => Math.round(zones.reduce((sum, zone) => sum + zone.carbon_emission, 0)),
+    [zones]
+  );
 
   // Update zones using live API data
   const updateZonesFromAPI = useCallback(() => {
@@ -233,15 +256,16 @@ export function useChennaiEnvironmentStatus() {
       }
     } catch (error) {
       console.error("Error fetching from Supabase:", error);
-      setError(error as Error);
       // Fallback to API data
       setUseSupabase(false);
+      setError(null);
       updateZonesFromAPI();
     }
   }, [updateZonesFromAPI]);
 
   // Setup real-time subscription
   useEffect(() => {
+    updateZonesFromAPI();
     fetchZones();
 
     // Subscribe to real-time changes (only if using Supabase)
@@ -314,5 +338,5 @@ export function useChennaiEnvironmentStatus() {
     }
   };
 
-  return { zones, loading, lastUpdated, isLive, error, refresh };
+  return { zones, stats, totalCarbon, loading, lastUpdated, isLive, error, refresh };
 }

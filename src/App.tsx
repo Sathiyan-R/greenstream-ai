@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import DashboardMap from "./pages/DashboardMap";
 import ExploreArchitecture from "./pages/ExploreArchitecture";
+import EnvironmentalInsights from "./pages/EnvironmentalInsights";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/map" element={<DashboardMap />} />
           <Route path="/explore-architecture" element={<ExploreArchitecture />} />
+          <Route path="/environmental-insights" element={<EnvironmentalInsights />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
